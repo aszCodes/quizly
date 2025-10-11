@@ -125,8 +125,16 @@ async function handleSubmitQuiz() {
 		const confirmSubmit = confirm(
 			"You haven't answered all questions. Submit anyway?"
 		);
-		if (!confirmSubmit) return;
+		if (!confirmSubmit) {
+			// Restart timer if user cancels
+			startTimer(Math.floor(getState().timeLeft / 60));
+			return;
+		}
 	}
+
+	// Disable submit button to prevent double submission
+	elements.submitBtn.disabled = true;
+	elements.submitBtn.textContent = "Submitting...";
 
 	try {
 		const result = await submitQuiz(quiz.id, studentName, answers);
@@ -139,6 +147,16 @@ async function handleSubmitQuiz() {
 		showScreen(elements.resultsScreen);
 	} catch (error) {
 		console.error("Error submitting quiz:", error);
+
+		// Re-enable submit button on error
+		elements.submitBtn.disabled = false;
+		elements.submitBtn.textContent = "Submit Quiz";
+
+		// Restart timer if there was an error
+		const timeLeft = getState().timeLeft;
+		if (timeLeft > 0) {
+			startTimer(Math.floor(timeLeft / 60));
+		}
 	}
 }
 
@@ -148,5 +166,7 @@ export { handleSubmitQuiz as submitQuiz };
 export function resetQuiz() {
 	resetState();
 	elements.studentNameInput.value = "";
+	elements.submitBtn.disabled = false;
+	elements.submitBtn.textContent = "Submit Quiz";
 	showScreen(elements.startScreen);
 }

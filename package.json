@@ -22,5 +22,8 @@
 	"homepage": "https://github.com/aszCodes/quizly#readme",
 	"devDependencies": {
 		"eslint": "^9.37.0"
+	},
+	"dependencies": {
+		"better-sqlite3": "^12.4.1"
 	}
 }

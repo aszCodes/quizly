@@ -1,6 +1,10 @@
 // api/submit handler for POST requests
-import attempts from "../data/attempts.js";
-import questions from "../data/questions.js";
+import {
+	getQuestionsByQuizId,
+	createAttempt,
+	countAttempts,
+	getQuizById,
+} from "../db/services.js";
 import sendJSON from "../utils/sendJSON.js";
 
 /**
@@ -34,8 +38,24 @@ const submitQuizHandler = (req, res) => {
 				return;
 			}
 
+			// Check if quiz exists
+			const quiz = getQuizById(quizId);
+			if (!quiz) {
+				sendJSON(res, 404, { error: "Quiz not found" });
+				return;
+			}
+
+			// Check attempt limit
+			const attemptCount = countAttempts(quizId, studentName);
+			if (attemptCount >= quiz.allowedAttempts) {
+				sendJSON(res, 403, {
+					error: `You have already completed this quiz. Maximum attempts: ${quiz.allowedAttempts}`,
+				});
+				return;
+			}
+
 			// Get questions for this quiz
-			const quizQuestions = questions.filter((q) => q.quizId === quizId);
+			const quizQuestions = getQuestionsByQuizId(quizId);
 
 			if (!Array.isArray(answers) || answers.length !== quizQuestions.length) {
 				sendJSON(res, 400, { error: "Invalid answers array" });
@@ -56,23 +76,24 @@ const submitQuizHandler = (req, res) => {
 			const totalQuestions = quizQuestions.length;
 			const percentage = Math.round((score / totalQuestions) * 100);
 
-			// Store attempt
-			const attempt = {
-				id: Date.now(),
+			// Store attempt in database
+			const attemptId = createAttempt(
 				quizId,
 				studentName,
 				answers,
 				score,
-				totalQuestions,
-				completedAt: new Date().toISOString(),
-			};
+				totalQuestions
+			);
 
-			attempts.push(attempt);
+			console.log(
+				`Attempt ${attemptId} created for ${studentName}: ${score}/${totalQuestions}`
+			);
 
 			// Send response
 			sendJSON(res, 200, { score, totalQuestions, percentage });
 		} catch (error) {
-			sendJSON(res, 400, { error: error });
+			console.error("Error submitting quiz:", error);
+			sendJSON(res, 500, { error: "Failed to submit quiz" });
 		}
 	});
 };

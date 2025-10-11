@@ -4,6 +4,11 @@ import { showError } from "./dom.js";
 export async function fetchQuiz() {
 	try {
 		const response = await fetch(`${API_URL}/quiz`);
+
+		if (!response.ok) {
+			throw new Error("Failed to load quiz");
+		}
+
 		const data = await response.json();
 		return data[0];
 	} catch (error) {
@@ -15,6 +20,11 @@ export async function fetchQuiz() {
 export async function fetchQuestions() {
 	try {
 		const response = await fetch(`${API_URL}/questions`);
+
+		if (!response.ok) {
+			throw new Error("Failed to load questions");
+		}
+
 		return await response.json();
 	} catch (error) {
 		showError("Failed to load questions");
@@ -30,13 +40,20 @@ export async function submitQuiz(quizId, studentName, answers) {
 			body: JSON.stringify({ quizId, studentName, answers }),
 		});
 
+		const data = await response.json();
+
 		if (!response.ok) {
-			throw new Error("Failed to submit quiz");
+			const errorMessage =
+				data.error || data.message || "Failed to submit quiz";
+			showError(errorMessage);
+			throw new Error(errorMessage);
 		}
 
-		return await response.json();
+		return data;
 	} catch (error) {
-		showError("Failed to submit quiz");
+		if (!error.message.includes("Maximum attempts")) {
+			showError(error.message || "Failed to submit quiz");
+		}
 		throw error;
 	}
 }
