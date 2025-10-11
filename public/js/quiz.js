@@ -87,6 +87,110 @@ function handleAnswerChange(questionIndex, answerIndex, questionId, target) {
 	target.parentElement.classList.add("selected");
 }
 
+// Results Rendering
+function renderDetailedResults(detailedResults, studentName) {
+	const detailedResultsContainer = document.getElementById("detailed-results");
+	detailedResultsContainer.innerHTML = "";
+
+	let correctCount = 0;
+	let incorrectCount = 0;
+	let unansweredCount = 0;
+
+	detailedResults.forEach((result, index) => {
+		const questionDiv = document.createElement("div");
+
+		// Determine status
+		let status = "";
+		let statusIcon = "";
+		if (result.selectedAnswer === null) {
+			status = "unanswered";
+			statusIcon = "⚠";
+			unansweredCount++;
+		} else if (result.isCorrect) {
+			status = "correct";
+			statusIcon = "✓";
+			correctCount++;
+		} else {
+			status = "incorrect";
+			statusIcon = "✗";
+			incorrectCount++;
+		}
+
+		questionDiv.className = `question-result ${status}`;
+
+		// Question header
+		const header = document.createElement("div");
+		header.className = "question-header";
+		header.innerHTML = `
+			<span class="status-icon">${statusIcon}</span>
+			<div class="question-text-result">${index + 1}. ${result.questionText}</div>
+		`;
+
+		// Answer section
+		const answerSection = document.createElement("div");
+		answerSection.className = "answer-section";
+
+		result.options.forEach((option, optionIndex) => {
+			const answerRow = document.createElement("div");
+			answerRow.className = "answer-row";
+
+			const optionLabel = String.fromCharCode(65 + optionIndex); // A, B, C, D...
+			let answerStatus = "";
+
+			// Determine answer row styling
+			if (optionIndex === result.correctAnswer) {
+				answerRow.classList.add("correct-answer");
+				answerStatus = '<span class="answer-status"> ✓ Correct answer</span>';
+			}
+
+			if (result.selectedAnswer === optionIndex && !result.isCorrect) {
+				answerRow.classList.add("wrong-selection");
+				answerStatus = '<span class="answer-status"> ✗ Your answer</span>';
+			}
+
+			if (result.selectedAnswer === optionIndex && result.isCorrect) {
+				answerStatus = '<span class="answer-status"> ✓ Your answer</span>';
+			}
+
+			answerRow.innerHTML = `
+				<span class="answer-label">${optionLabel}.</span> ${option}${answerStatus}
+			`;
+
+			answerSection.appendChild(answerRow);
+		});
+
+		// Add explanation for unanswered
+		if (result.selectedAnswer === null) {
+			const explanation = document.createElement("div");
+			explanation.className = "explanation";
+			explanation.textContent = "You did not answer this question.";
+			answerSection.appendChild(explanation);
+		}
+
+		questionDiv.appendChild(header);
+		questionDiv.appendChild(answerSection);
+		detailedResultsContainer.appendChild(questionDiv);
+	});
+
+	// Update stats
+	document.getElementById("correct-count").textContent = correctCount;
+	document.getElementById("incorrect-count").textContent = incorrectCount;
+	document.getElementById("unanswered-count").textContent = unansweredCount;
+
+	// Setup toggle button
+	const toggleBtn = document.getElementById("toggle-btn");
+	const detailedResultsDiv = document.getElementById("detailed-results");
+
+	toggleBtn.onclick = () => {
+		detailedResultsDiv.classList.toggle("show");
+		if (detailedResultsDiv.classList.contains("show")) {
+			toggleBtn.textContent = "Hide Detailed Results";
+		} else {
+			toggleBtn.textContent = "Show Detailed Results";
+		}
+	};
+}
+
 // Main Quiz Functions
 export async function startQuiz() {
 	const studentName = elements.studentNameInput.value.trim();
@@ -139,10 +243,17 @@ async function handleSubmitQuiz() {
 	try {
 		const result = await submitQuiz(quiz.id, studentName, answers);
 
+		// Update summary section
 		elements.resultName.textContent = studentName;
-		elements.resultScore.textContent = result.score;
-		elements.resultTotal.textContent = result.totalQuestions;
-		elements.resultPercentage.textContent = result.percentage;
+		document.getElementById(
+			"score-display"
+		).textContent = `${result.score}/${result.totalQuestions}`;
+		document.getElementById(
+			"percentage-display"
+		).textContent = `You scored ${result.percentage}%`;
+
+		// Render detailed results
+		renderDetailedResults(result.detailedResults, studentName);
 
 		showScreen(elements.resultsScreen);
 	} catch (error) {
@@ -168,5 +279,9 @@ export function resetQuiz() {
 	elements.studentNameInput.value = "";
 	elements.submitBtn.disabled = false;
 	elements.submitBtn.textContent = "Submit Quiz";
+
+	document.getElementById("detailed-results").classList.remove("show");
+	document.getElementById("toggle-btn").textContent = "Show Detailed Results";
+
 	showScreen(elements.startScreen);
 }

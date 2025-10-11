@@ -34,16 +34,38 @@
 			<!-- Results Screen -->
 			<div id="results-screen" class="screen">
 				<h1>Quiz Complete!</h1>
-				<div class="results">
-					<p class="student-name">Name: <span id="result-name"></span></p>
-					<p class="score">
-						Score: <span id="result-score"></span>/<span
-							id="result-total"
-						></span>
+
+				<div class="summary">
+					<h2 id="score-display"></h2>
+					<p id="percentage-display"></p>
+					<p class="student-name-result">
+						Name: <span id="result-name"></span>
 					</p>
-					<p class="percentage">
-						Percentage: <span id="result-percentage"></span>%
-					</p>
+				</div>
+
+				<div class="stats-grid">
+					<div class="stat-card correct">
+						<div class="stat-value" id="correct-count">0</div>
+						<div class="stat-label">Correct</div>
+					</div>
+					<div class="stat-card incorrect">
+						<div class="stat-value" id="incorrect-count">0</div>
+						<div class="stat-label">Incorrect</div>
+					</div>
+					<div class="stat-card unanswered">
+						<div class="stat-value" id="unanswered-count">0</div>
+						<div class="stat-label">Unanswered</div>
+					</div>
+				</div>
+
+				<div class="results-toggle">
+					<button class="toggle-btn" id="toggle-btn">
+						Show Detailed Results
+					</button>
+				</div>
+
+				<div class="detailed-results" id="detailed-results">
+					<!-- Detailed results will be inserted here -->
 				</div>
 			</div>
 

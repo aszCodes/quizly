@@ -62,15 +62,23 @@ const submitQuizHandler = (req, res) => {
 				return;
 			}
 
-			// Calculate score
+			// Calculate score and prepare detailed results
 			let score = 0;
-			answers.forEach((selectedIndex, index) => {
-				if (
-					quizQuestions[index] &&
-					selectedIndex === quizQuestions[index].correctAnswerIndex
-				) {
+			const detailedResults = answers.map((selectedIndex, index) => {
+				const question = quizQuestions[index];
+				const isCorrect = selectedIndex === question.correctAnswerIndex;
+
+				if (isCorrect) {
 					score++;
 				}
+
+				return {
+					questionText: question.questionText,
+					options: question.options,
+					selectedAnswer: selectedIndex,
+					correctAnswer: question.correctAnswerIndex,
+					isCorrect: isCorrect,
+				};
 			});
 
 			const totalQuestions = quizQuestions.length;
@@ -89,8 +97,12 @@ const submitQuizHandler = (req, res) => {
 				`Attempt ${attemptId} created for ${studentName}: ${score}/${totalQuestions}`
 			);
 
-			// Send response
-			sendJSON(res, 200, { score, totalQuestions, percentage });
+			sendJSON(res, 200, {
+				score,
+				totalQuestions,
+				percentage,
+				detailedResults,
+			});
 		} catch (error) {
 			console.error("Error submitting quiz:", error);
 			sendJSON(res, 500, { error: "Failed to submit quiz" });
