@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import attemptsHandler from "../handlers/attemptsHandler.js";
 import quizHandler from "../handlers/quizHandler.js";
 import questionsHandler from "../handlers/questionsHandler.js";
 import submitHandler from "../handlers/submitHandler.js";
@@ -25,6 +26,8 @@ export const router = async (req, res) => {
 		questionsHandler(req, res);
 	} else if (req.url === "/api/submit" && req.method === "POST") {
 		submitHandler(req, res);
+	} else if (req.url === "/api/attempts" && req.method === "GET") {
+		attemptsHandler(req, res);
 	}
 	// Serve static files
 	else if (req.url === "/" || req.url === "/index.html") {
