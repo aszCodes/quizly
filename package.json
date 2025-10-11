@@ -1,0 +1,20 @@
+{
+	"name": "quizly",
+	"version": "1.0.0",
+	"description": "An offline quiz app for teachers",
+	"main": "app.js",
+	"type": "module",
+	"scripts": {
+		"dev": "node --watch --env-file=.env app.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/aszCodes/quizly.git"
+	},
+	"author": "aszCodes",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/aszCodes/quizly/issues"
+	},
+	"homepage": "https://github.com/aszCodes/quizly#readme"
+}
