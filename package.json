@@ -5,7 +5,9 @@
 	"main": "app.js",
 	"type": "module",
 	"scripts": {
-		"dev": "node --watch --env-file=.env app.js"
+		"dev": "node --watch --env-file=.env server.js",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix"
 	},
 	"repository": {
 		"type": "git",
@@ -16,5 +18,8 @@
 	"bugs": {
 		"url": "https://github.com/aszCodes/quizly/issues"
 	},
-	"homepage": "https://github.com/aszCodes/quizly#readme"
+	"homepage": "https://github.com/aszCodes/quizly#readme",
+	"devDependencies": {
+		"eslint": "^9.37.0"
+	}
 }
