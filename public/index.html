@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DSA Quiz</title>
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<!-- Start Screen -->
+			<div id="start-screen" class="screen active">
+				<h1>DSA Quiz #1</h1>
+				<p>Week 1 and Week 2 Quiz</p>
+				<input
+					type="text"
+					id="student-name"
+					placeholder="Enter your name"
+					required
+				/>
+				<button id="start-btn">Start Quiz</button>
+			</div>
+
+			<!-- Quiz Screen -->
+			<div id="quiz-screen" class="screen">
+				<div class="quiz-header">
+					<h2 id="quiz-title"></h2>
+					<div class="timer" id="timer">Time: 10:00</div>
+				</div>
+				<div id="questions-container"></div>
+				<button id="submit-btn">Submit Quiz</button>
+			</div>
+
+			<!-- Results Screen -->
+			<div id="results-screen" class="screen">
+				<h1>Quiz Complete!</h1>
+				<div class="results">
+					<p class="student-name">Name: <span id="result-name"></span></p>
+					<p class="score">
+						Score: <span id="result-score"></span>/<span
+							id="result-total"
+						></span>
+					</p>
+					<p class="percentage">
+						Percentage: <span id="result-percentage"></span>%
+					</p>
+				</div>
+			</div>
+
+			<!-- Error Message -->
+			<div id="error-message" class="error hidden"></div>
+		</div>
+
+		<script src="/js/script.js"></script>
+	</body>
+</html>
