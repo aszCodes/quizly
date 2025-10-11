@@ -3,6 +3,20 @@ import attempts from "../data/attempts.js";
 import questions from "../data/questions.js";
 import sendJSON from "../utils/sendJSON.js";
 
+/**
+ * accepts JSON body with the following fields:
+ * studentName: string
+ * answers: array of integers
+ * quizId: integer
+ *
+ * example body:
+ * {
+ * 	"studentName": "John Doe",
+ * 	"answers": [0],
+ * 	"quizId": 1
+ * }
+ */
+
 const submitQuizHandler = (req, res) => {
 	let body = "";
 

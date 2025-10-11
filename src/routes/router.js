@@ -1,7 +1,8 @@
+import attemptsHandler from "../handlers/attemptsHandler.js";
 import quizHandler from "../handlers/quizHandler.js";
 import questionsHandler from "../handlers/questionsHandler.js";
 import submitHandler from "../handlers/submitHandler.js";
-import { sendJSON } from "../utils/sendJSON.js";
+import sendJSON from "../utils/sendJSON.js";
 
 export const router = (req, res) => {
 	// CORS headers
@@ -23,6 +24,8 @@ export const router = (req, res) => {
 		questionsHandler(req, res);
 	} else if (req.url === "/api/submit" && req.method === "POST") {
 		submitHandler(req, res);
+	} else if (req.url === "/api/attempts" && req.method === "GET") {
+		attemptsHandler(req, res);
 	} else {
 		sendJSON(res, 404, { error: "Not found" });
 	}
