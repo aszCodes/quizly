@@ -18,14 +18,22 @@ import {
 	importQuestions,
 } from "../handlers/adminHandlers.js";
 import sendJSON from "../utils/sendJSON.js";
+import { requireBasicAuth } from "../middleware/basicAuth.js";
 
-// safely extract and validate numeric IDs from URLs
+// Helper to safely extract and validate numeric IDs from URLs
 const extractId = (url, pattern) => {
 	const match = url.match(pattern);
 	if (!match) return null;
 
 	const id = parseInt(match[1], 10);
 	return isNaN(id) || id < 1 ? null : id;
+};
+
+// Check if URL requires authentication
+const isAdminRoute = (url) => {
+	return (
+		url.startsWith("/api/admin/") || url === "/admin" || url === "/admin.html"
+	);
 };
 
 export const router = async (req, res) => {
@@ -35,7 +43,7 @@ export const router = async (req, res) => {
 		"Access-Control-Allow-Methods",
 		"GET, POST, PUT, DELETE, OPTIONS"
 	);
-	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+	res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
 	// Handle preflight requests
 	if (req.method === "OPTIONS") {
@@ -45,6 +53,13 @@ export const router = async (req, res) => {
 	}
 
 	const { url, method } = req;
+
+	// Protect admin routes with Basic Auth
+	if (isAdminRoute(url)) {
+		if (!requireBasicAuth(req, res)) {
+			return; // Auth failed, response already sent
+		}
+	}
 
 	// Public API Routes
 	if (url === "/api/quiz" && method === "GET") {
@@ -56,7 +71,7 @@ export const router = async (req, res) => {
 	} else if (url === "/api/attempts" && method === "GET") {
 		attemptsHandler(req, res);
 	}
-	// Admin Quiz Routes
+	// Admin Quiz Routes (Protected by Basic Auth)
 	else if (url === "/api/admin/quizzes" && method === "GET") {
 		getAllQuizzesAdmin(req, res);
 	} else if (url === "/api/admin/quizzes" && method === "POST") {
@@ -86,7 +101,7 @@ export const router = async (req, res) => {
 		}
 		setActiveQuiz(req, res, quizId);
 	}
-	// Admin Questions Routes
+	// Admin Questions Routes (Protected by Basic Auth)
 	else if (url === "/api/admin/questions" && method === "GET") {
 		getAllQuestionsAdmin(req, res);
 	} else if (url === "/api/admin/questions" && method === "POST") {
@@ -125,6 +140,7 @@ export const router = async (req, res) => {
 			sendJSON(res, 500, { error: "Could not load page" });
 		}
 	} else if (url === "/admin" || url === "/admin.html") {
+		// Already authenticated by basicAuth above
 		try {
 			const html = await readFile(
 				join(process.cwd(), "public", "admin.html"),
@@ -137,7 +153,6 @@ export const router = async (req, res) => {
 			sendJSON(res, 500, { error: "Could not load admin page" });
 		}
 	} else if (url.startsWith("/css/")) {
-		// Prevent directory traversal
 		const safePath = url.replace(/\.\./g, "").replace(/\/\//g, "/");
 		try {
 			const css = await readFile(
@@ -151,7 +166,6 @@ export const router = async (req, res) => {
 			sendJSON(res, 404, { error: "CSS not found" });
 		}
 	} else if (url.startsWith("/js/")) {
-		// Prevent directory traversal
 		const safePath = url.replace(/\.\./g, "").replace(/\/\//g, "/");
 		try {
 			const js = await readFile(
