@@ -69,7 +69,7 @@ const seedData = () => {
       VALUES (?, ?, ?, ?, ?)
     `);
 
-		insertQuiz.run("DSA Quiz #2", "Week 1 and Week 2 Quiz", 10, 1, 1);
+		insertQuiz.run("DSA Quiz #2", "Week 1 and Week 2 Quiz", 1, 1, 1);
 
 		// Insert question
 		const insertQuestion = db.prepare(`

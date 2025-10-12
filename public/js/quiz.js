@@ -230,8 +230,21 @@ async function handleSubmitQuiz() {
 			"You haven't answered all questions. Submit anyway?"
 		);
 		if (!confirmSubmit) {
-			// Restart timer if user cancels
-			startTimer(Math.floor(getState().timeLeft / 60));
+			// Restart timer
+			const timerInterval = setInterval(() => {
+				const { timeLeft } = getState();
+				const newTimeLeft = timeLeft - 1;
+				setState({ timeLeft: newTimeLeft });
+
+				elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
+
+				if (newTimeLeft <= 0) {
+					stopTimer();
+					handleSubmitQuiz();
+				}
+			}, 1000);
+
+			setState({ timerInterval });
 			return;
 		}
 	}
@@ -263,10 +276,22 @@ async function handleSubmitQuiz() {
 		elements.submitBtn.disabled = false;
 		elements.submitBtn.textContent = "Submit Quiz";
 
-		// Restart timer if there was an error
-		const timeLeft = getState().timeLeft;
+		const { timeLeft } = getState();
 		if (timeLeft > 0) {
-			startTimer(Math.floor(timeLeft / 60));
+			const timerInterval = setInterval(() => {
+				const { timeLeft } = getState();
+				const newTimeLeft = timeLeft - 1;
+				setState({ timeLeft: newTimeLeft });
+
+				elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
+
+				if (newTimeLeft <= 0) {
+					stopTimer();
+					handleSubmitQuiz();
+				}
+			}, 1000);
+
+			setState({ timerInterval });
 		}
 	}
 }
