@@ -2,8 +2,13 @@ import { getState, setState, resetState } from "./state.js";
 import { elements, showScreen, showError, formatTime } from "./dom.js";
 import { fetchQuiz, fetchQuestions, submitQuiz } from "./api.js";
 
+let isSubmitting = false;
+
 // Timer Functions
 function startTimer(duration) {
+	// Clear any existing timer
+	stopTimer();
+
 	const timeLeft = duration * 60;
 	setState({ timeLeft });
 
@@ -31,24 +36,6 @@ function stopTimer() {
 		clearInterval(timerInterval);
 		setState({ timerInterval: null });
 	}
-}
-
-function restartTimer() {
-	const { timeLeft } = getState();
-	const timerInterval = setInterval(() => {
-		const { timeLeft } = getState();
-		const newTimeLeft = timeLeft - 1;
-		setState({ timeLeft: newTimeLeft });
-
-		elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
-
-		if (newTimeLeft <= 0) {
-			stopTimer();
-			handleSubmitQuiz();
-		}
-	}, 1000);
-
-	setState({ timerInterval });
 }
 
 // Question Rendering
@@ -139,10 +126,17 @@ function renderDetailedResults(detailedResults, studentName) {
 		// Question header
 		const header = document.createElement("div");
 		header.className = "question-header";
-		header.innerHTML = `
-			<span class="status-icon">${statusIcon}</span>
-			<div class="question-text-result">${index + 1}. ${result.questionText}</div>
-		`;
+
+		const statusSpan = document.createElement("span");
+		statusSpan.className = "status-icon";
+		statusSpan.textContent = statusIcon;
+
+		const questionTextDiv = document.createElement("div");
+		questionTextDiv.className = "question-text-result";
+		questionTextDiv.textContent = `${index + 1}. ${result.questionText}`;
+
+		header.appendChild(statusSpan);
+		header.appendChild(questionTextDiv);
 
 		// Answer section
 		const answerSection = document.createElement("div");
@@ -152,27 +146,38 @@ function renderDetailedResults(detailedResults, studentName) {
 			const answerRow = document.createElement("div");
 			answerRow.className = "answer-row";
 
-			const optionLabel = String.fromCharCode(65 + optionIndex); // A, B, C, D...
-			let answerStatus = "";
+			const optionLabel = String.fromCharCode(65 + optionIndex);
 
 			// Determine answer row styling
 			if (optionIndex === result.correctAnswer) {
 				answerRow.classList.add("correct-answer");
-				answerStatus = '<span class="answer-status"> ✓ Correct answer</span>';
 			}
 
 			if (result.selectedAnswer === optionIndex && !result.isCorrect) {
 				answerRow.classList.add("wrong-selection");
-				answerStatus = '<span class="answer-status"> ✗ Your answer</span>';
 			}
 
-			if (result.selectedAnswer === optionIndex && result.isCorrect) {
-				answerStatus = '<span class="answer-status"> ✓ Your answer</span>';
-			}
+			const labelSpan = document.createElement("span");
+			labelSpan.className = "answer-label";
+			labelSpan.textContent = `${optionLabel}.`;
 
-			answerRow.innerHTML = `
-				<span class="answer-label">${optionLabel}.</span> ${option}${answerStatus}
-			`;
+			const optionText = document.createTextNode(` ${option}`);
+
+			answerRow.appendChild(labelSpan);
+			answerRow.appendChild(optionText);
+
+			// Add status indicator
+			if (optionIndex === result.correctAnswer) {
+				const statusSpan = document.createElement("span");
+				statusSpan.className = "answer-status";
+				statusSpan.textContent = " ✓ Correct answer";
+				answerRow.appendChild(statusSpan);
+			} else if (result.selectedAnswer === optionIndex && !result.isCorrect) {
+				const statusSpan = document.createElement("span");
+				statusSpan.className = "answer-status";
+				statusSpan.textContent = " ✗ Your answer";
+				answerRow.appendChild(statusSpan);
+			}
 
 			answerSection.appendChild(answerRow);
 		});
@@ -201,11 +206,9 @@ function renderDetailedResults(detailedResults, studentName) {
 
 	toggleBtn.onclick = () => {
 		detailedResultsDiv.classList.toggle("show");
-		if (detailedResultsDiv.classList.contains("show")) {
-			toggleBtn.textContent = "Hide Detailed Results";
-		} else {
-			toggleBtn.textContent = "Show Detailed Results";
-		}
+		toggleBtn.textContent = detailedResultsDiv.classList.contains("show")
+			? "Hide Detailed Results"
+			: "Show Detailed Results";
 	};
 }
 
@@ -215,6 +218,13 @@ export async function startQuiz() {
 
 	if (!studentName) {
 		showError("Please enter your name");
+		return;
+	}
+
+	// Sanitize student name
+	const sanitizedName = studentName.replace(/[<>\"']/g, "");
+	if (sanitizedName.length < 2) {
+		showError("Please enter a valid name (at least 2 characters)");
 		return;
 	}
 
@@ -228,10 +238,13 @@ export async function startQuiz() {
 			return;
 		}
 
+		// Reset submission lock
+		isSubmitting = false;
+
 		setState({
 			quiz,
 			questions,
-			studentName,
+			studentName: sanitizedName,
 			answers: new Array(questions.length).fill(null),
 		});
 
@@ -244,24 +257,32 @@ export async function startQuiz() {
 		showError("Failed to start quiz. Please try again.");
 	}
 }
+
 async function handleSubmitQuiz() {
 	// Prevent double submission
-	if (elements.submitBtn.disabled) return;
+	if (isSubmitting) {
+		return;
+	}
 
-	const { quiz, studentName, answers } = getState();
+	const { quiz, studentName, answers, timeLeft } = getState();
+
+	// Stop timer immediately
 	stopTimer();
 
-	if (answers.includes(null)) {
+	// Check for unanswered questions
+	if (answers.includes(null) && timeLeft > 0) {
 		const confirmSubmit = confirm(
 			"You haven't answered all questions. Submit anyway?"
 		);
 		if (!confirmSubmit) {
-			restartTimer();
+			// Restart timer only if user cancels
+			startTimer(Math.ceil(timeLeft / 60));
 			return;
 		}
 	}
 
-	// Disable IMMEDIATELY
+	// Set lock and disable button
+	isSubmitting = true;
 	elements.submitBtn.disabled = true;
 	elements.submitBtn.textContent = "Submitting...";
 
@@ -284,12 +305,15 @@ async function handleSubmitQuiz() {
 	} catch (error) {
 		console.error("Error submitting quiz:", error);
 
-		// Only re-enable if there's time left
-		const { timeLeft } = getState();
-		if (timeLeft > 0) {
+		// Only allow retry if submission actually failed
+		if (!error.message?.includes("Maximum attempts") && timeLeft > 0) {
+			isSubmitting = false;
 			elements.submitBtn.disabled = false;
 			elements.submitBtn.textContent = "Submit Quiz";
-			restartTimer();
+			startTimer(Math.ceil(timeLeft / 60));
+		} else {
+			// For attempt limit errors, keep button disabled
+			elements.submitBtn.textContent = "Cannot Submit";
 		}
 	}
 }
@@ -298,7 +322,10 @@ async function handleSubmitQuiz() {
 export { handleSubmitQuiz as submitQuiz };
 
 export function resetQuiz() {
+	stopTimer();
 	resetState();
+	isSubmitting = false;
+
 	elements.studentNameInput.value = "";
 	elements.submitBtn.disabled = false;
 	elements.submitBtn.textContent = "Submit Quiz";

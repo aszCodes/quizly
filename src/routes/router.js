@@ -19,6 +19,15 @@ import {
 } from "../handlers/adminHandlers.js";
 import sendJSON from "../utils/sendJSON.js";
 
+// safely extract and validate numeric IDs from URLs
+const extractId = (url, pattern) => {
+	const match = url.match(pattern);
+	if (!match) return null;
+
+	const id = parseInt(match[1], 10);
+	return isNaN(id) || id < 1 ? null : id;
+};
+
 export const router = async (req, res) => {
 	// CORS headers
 	res.setHeader("Access-Control-Allow-Origin", "*");
@@ -35,65 +44,75 @@ export const router = async (req, res) => {
 		return;
 	}
 
+	const { url, method } = req;
+
 	// Public API Routes
-	if (req.url === "/api/quiz" && req.method === "GET") {
+	if (url === "/api/quiz" && method === "GET") {
 		quizHandler(req, res);
-	} else if (req.url === "/api/questions" && req.method === "GET") {
+	} else if (url === "/api/questions" && method === "GET") {
 		questionsHandler(req, res);
-	} else if (req.url === "/api/submit" && req.method === "POST") {
+	} else if (url === "/api/submit" && method === "POST") {
 		submitHandler(req, res);
-	} else if (req.url === "/api/attempts" && req.method === "GET") {
+	} else if (url === "/api/attempts" && method === "GET") {
 		attemptsHandler(req, res);
 	}
-	// Admin API Routes
-	else if (req.url === "/api/admin/quizzes" && req.method === "GET") {
+	// Admin Quiz Routes
+	else if (url === "/api/admin/quizzes" && method === "GET") {
 		getAllQuizzesAdmin(req, res);
-	} else if (req.url === "/api/admin/quizzes" && req.method === "POST") {
+	} else if (url === "/api/admin/quizzes" && method === "POST") {
 		createQuiz(req, res);
-	} else if (
-		req.url.match(/^\/api\/admin\/quizzes\/\d+$/) &&
-		req.method === "PUT"
-	) {
-		const quizId = req.url.split("/").pop();
+	} else if (url.match(/^\/api\/admin\/quizzes\/\d+$/) && method === "PUT") {
+		const quizId = extractId(url, /^\/api\/admin\/quizzes\/(\d+)$/);
+		if (!quizId) {
+			sendJSON(res, 400, { error: "Invalid quiz ID" });
+			return;
+		}
 		updateQuiz(req, res, quizId);
-	} else if (
-		req.url.match(/^\/api\/admin\/quizzes\/\d+$/) &&
-		req.method === "DELETE"
-	) {
-		const quizId = req.url.split("/").pop();
+	} else if (url.match(/^\/api\/admin\/quizzes\/\d+$/) && method === "DELETE") {
+		const quizId = extractId(url, /^\/api\/admin\/quizzes\/(\d+)$/);
+		if (!quizId) {
+			sendJSON(res, 400, { error: "Invalid quiz ID" });
+			return;
+		}
 		deleteQuiz(req, res, quizId);
 	} else if (
-		req.url.match(/^\/api\/admin\/quizzes\/\d+\/activate$/) &&
-		req.method === "PUT"
+		url.match(/^\/api\/admin\/quizzes\/\d+\/activate$/) &&
+		method === "PUT"
 	) {
-		const quizId = req.url.split("/")[4];
+		const quizId = extractId(url, /^\/api\/admin\/quizzes\/(\d+)\/activate$/);
+		if (!quizId) {
+			sendJSON(res, 400, { error: "Invalid quiz ID" });
+			return;
+		}
 		setActiveQuiz(req, res, quizId);
 	}
 	// Admin Questions Routes
-	else if (req.url === "/api/admin/questions" && req.method === "GET") {
+	else if (url === "/api/admin/questions" && method === "GET") {
 		getAllQuestionsAdmin(req, res);
-	} else if (req.url === "/api/admin/questions" && req.method === "POST") {
+	} else if (url === "/api/admin/questions" && method === "POST") {
 		createQuestion(req, res);
-	} else if (
-		req.url.match(/^\/api\/admin\/questions\/\d+$/) &&
-		req.method === "PUT"
-	) {
-		const questionId = req.url.split("/").pop();
+	} else if (url.match(/^\/api\/admin\/questions\/\d+$/) && method === "PUT") {
+		const questionId = extractId(url, /^\/api\/admin\/questions\/(\d+)$/);
+		if (!questionId) {
+			sendJSON(res, 400, { error: "Invalid question ID" });
+			return;
+		}
 		updateQuestion(req, res, questionId);
 	} else if (
-		req.url.match(/^\/api\/admin\/questions\/\d+$/) &&
-		req.method === "DELETE"
+		url.match(/^\/api\/admin\/questions\/\d+$/) &&
+		method === "DELETE"
 	) {
-		const questionId = req.url.split("/").pop();
+		const questionId = extractId(url, /^\/api\/admin\/questions\/(\d+)$/);
+		if (!questionId) {
+			sendJSON(res, 400, { error: "Invalid question ID" });
+			return;
+		}
 		deleteQuestion(req, res, questionId);
-	} else if (
-		req.url === "/api/admin/questions/import" &&
-		req.method === "POST"
-	) {
+	} else if (url === "/api/admin/questions/import" && method === "POST") {
 		importQuestions(req, res);
 	}
-	// Serve static files
-	else if (req.url === "/" || req.url === "/index.html") {
+	// Static file serving
+	else if (url === "/" || url === "/index.html") {
 		try {
 			const html = await readFile(
 				join(process.cwd(), "public", "index.html"),
@@ -105,7 +124,7 @@ export const router = async (req, res) => {
 		} catch (error) {
 			sendJSON(res, 500, { error: "Could not load page" });
 		}
-	} else if (req.url === "/admin" || req.url === "/admin.html") {
+	} else if (url === "/admin" || url === "/admin.html") {
 		try {
 			const html = await readFile(
 				join(process.cwd(), "public", "admin.html"),
@@ -117,10 +136,12 @@ export const router = async (req, res) => {
 		} catch (error) {
 			sendJSON(res, 500, { error: "Could not load admin page" });
 		}
-	} else if (req.url.startsWith("/css/")) {
+	} else if (url.startsWith("/css/")) {
+		// Prevent directory traversal
+		const safePath = url.replace(/\.\./g, "").replace(/\/\//g, "/");
 		try {
 			const css = await readFile(
-				join(process.cwd(), "public", req.url),
+				join(process.cwd(), "public", safePath),
 				"utf-8"
 			);
 			res.statusCode = 200;
@@ -129,10 +150,12 @@ export const router = async (req, res) => {
 		} catch (error) {
 			sendJSON(res, 404, { error: "CSS not found" });
 		}
-	} else if (req.url.startsWith("/js/")) {
+	} else if (url.startsWith("/js/")) {
+		// Prevent directory traversal
+		const safePath = url.replace(/\.\./g, "").replace(/\/\//g, "/");
 		try {
 			const js = await readFile(
-				join(process.cwd(), "public", req.url),
+				join(process.cwd(), "public", safePath),
 				"utf-8"
 			);
 			res.statusCode = 200;
@@ -140,6 +163,15 @@ export const router = async (req, res) => {
 			res.end(js);
 		} catch (error) {
 			sendJSON(res, 404, { error: "JS not found" });
+		}
+	} else if (url === "/icon.png") {
+		try {
+			const icon = await readFile(join(process.cwd(), "public", "icon.png"));
+			res.statusCode = 200;
+			res.setHeader("Content-Type", "image/png");
+			res.end(icon);
+		} catch (error) {
+			sendJSON(res, 404, { error: "Icon not found" });
 		}
 	} else {
 		sendJSON(res, 404, { error: "Not found" });
