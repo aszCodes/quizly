@@ -33,6 +33,24 @@ function stopTimer() {
 	}
 }
 
+function restartTimer() {
+	const { timeLeft } = getState();
+	const timerInterval = setInterval(() => {
+		const { timeLeft } = getState();
+		const newTimeLeft = timeLeft - 1;
+		setState({ timeLeft: newTimeLeft });
+
+		elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
+
+		if (newTimeLeft <= 0) {
+			stopTimer();
+			handleSubmitQuiz();
+		}
+	}, 1000);
+
+	setState({ timerInterval });
+}
+
 // Question Rendering
 function renderQuestions() {
 	const { questions } = getState();
@@ -204,6 +222,12 @@ export async function startQuiz() {
 		const quiz = await fetchQuiz();
 		const questions = await fetchQuestions();
 
+		// Validate quiz has questions
+		if (!questions || questions.length === 0) {
+			showError("This quiz has no questions yet. Please try again later.");
+			return;
+		}
+
 		setState({
 			quiz,
 			questions,
@@ -217,12 +241,14 @@ export async function startQuiz() {
 		showScreen(elements.quizScreen);
 	} catch (error) {
 		console.error("Error starting quiz:", error);
+		showError("Failed to start quiz. Please try again.");
 	}
 }
-
 async function handleSubmitQuiz() {
-	const { quiz, studentName, answers } = getState();
+	// Prevent double submission
+	if (elements.submitBtn.disabled) return;
 
+	const { quiz, studentName, answers } = getState();
 	stopTimer();
 
 	if (answers.includes(null)) {
@@ -230,26 +256,12 @@ async function handleSubmitQuiz() {
 			"You haven't answered all questions. Submit anyway?"
 		);
 		if (!confirmSubmit) {
-			// Restart timer
-			const timerInterval = setInterval(() => {
-				const { timeLeft } = getState();
-				const newTimeLeft = timeLeft - 1;
-				setState({ timeLeft: newTimeLeft });
-
-				elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
-
-				if (newTimeLeft <= 0) {
-					stopTimer();
-					handleSubmitQuiz();
-				}
-			}, 1000);
-
-			setState({ timerInterval });
+			restartTimer();
 			return;
 		}
 	}
 
-	// Disable submit button to prevent double submission
+	// Disable IMMEDIATELY
 	elements.submitBtn.disabled = true;
 	elements.submitBtn.textContent = "Submitting...";
 
@@ -272,26 +284,12 @@ async function handleSubmitQuiz() {
 	} catch (error) {
 		console.error("Error submitting quiz:", error);
 
-		// Re-enable submit button on error
-		elements.submitBtn.disabled = false;
-		elements.submitBtn.textContent = "Submit Quiz";
-
+		// Only re-enable if there's time left
 		const { timeLeft } = getState();
 		if (timeLeft > 0) {
-			const timerInterval = setInterval(() => {
-				const { timeLeft } = getState();
-				const newTimeLeft = timeLeft - 1;
-				setState({ timeLeft: newTimeLeft });
-
-				elements.timerElement.textContent = `Time: ${formatTime(newTimeLeft)}`;
-
-				if (newTimeLeft <= 0) {
-					stopTimer();
-					handleSubmitQuiz();
-				}
-			}, 1000);
-
-			setState({ timerInterval });
+			elements.submitBtn.disabled = false;
+			elements.submitBtn.textContent = "Submit Quiz";
+			restartTimer();
 		}
 	}
 }

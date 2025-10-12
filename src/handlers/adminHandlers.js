@@ -5,6 +5,7 @@ import {
 	getQuestionsByQuizId,
 	countAttempts,
 } from "../db/services.js";
+import { validateQuiz, validateQuestion } from "../utils/validation.js";
 import db from "../db/database.js";
 import sendJSON from "../utils/sendJSON.js";
 
@@ -42,11 +43,12 @@ export const createQuiz = (req, res) => {
 
 	req.on("end", () => {
 		try {
-			const { title, description, timeLimit, allowedAttempts } =
-				JSON.parse(body);
+			const data = JSON.parse(body);
 
-			if (!title || !timeLimit) {
-				sendJSON(res, 400, { error: "Title and time limit are required" });
+			// Validate
+			const validation = validateQuiz(data);
+			if (!validation.isValid) {
+				sendJSON(res, 400, { error: validation.errors.join(", ") });
 				return;
 			}
 
@@ -56,10 +58,10 @@ export const createQuiz = (req, res) => {
 			`);
 
 			const result = stmt.run(
-				title,
-				description || null,
-				timeLimit,
-				allowedAttempts || 1
+				data.title,
+				data.description || null,
+				data.timeLimit,
+				data.allowedAttempts || 1
 			);
 
 			sendJSON(res, 201, {
