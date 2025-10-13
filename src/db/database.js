@@ -56,45 +56,6 @@ const initDB = () => {
 	console.log("Database initialized");
 };
 
-// Seed initial data if tables are empty
-const seedData = () => {
-	const quizCount = db.prepare("SELECT COUNT(*) as count FROM quizzes").get();
-
-	if (quizCount.count === 0) {
-		console.log("Seeding initial data...");
-
-		// Insert quiz
-		const insertQuiz = db.prepare(`
-      INSERT INTO quizzes (title, description, timeLimit, isActive, allowedAttempts)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-		insertQuiz.run("DSA Quiz #2", "Week 1 and Week 2 Quiz", 1, 1, 1);
-
-		// Insert question
-		const insertQuestion = db.prepare(`
-      INSERT INTO questions (quizId, questionText, options, correctAnswerIndex)
-      VALUES (?, ?, ?, ?)
-    `);
-
-		const options = JSON.stringify([
-			"Data Structure",
-			"Data Type",
-			"Data Flow",
-		]);
-		insertQuestion.run(
-			1,
-			"It is an organized way to store and manage data",
-			options,
-			0
-		);
-
-		console.log("Initial data seeded");
-	}
-};
-
-// Initialize on import
 initDB();
-seedData();
 
 export default db;

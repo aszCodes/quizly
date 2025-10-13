@@ -1,31 +1,26 @@
 // src/handlers/adminHandlers.js
 import {
-	getAllQuizzes,
+	getAllQuizzesWithQuestionCount,
 	getQuizById,
-	getQuestionsByQuizId,
-	countAttempts,
+	createQuizService,
+	updateQuizService,
+	deleteQuizService,
+	deactivateAllQuizzes,
+	activateQuizService,
+	getAllQuestionsService,
+	createQuestionService,
+	updateQuestionService,
+	deleteQuestionService,
+	importQuestionsService,
 } from "../db/services.js";
-import { validateQuiz, validateQuestion } from "../utils/validation.js";
-import db from "../db/database.js";
+import { validateQuiz } from "../utils/validation.js";
+import { parseBody } from "../utils/bodyParser.js";
 import sendJSON from "../utils/sendJSON.js";
 
 // Get all quizzes with question count
 export const getAllQuizzesAdmin = (req, res) => {
 	try {
-		const quizzes = db
-			.prepare(
-				`
-			SELECT
-				q.*,
-				COUNT(qu.id) as questionCount
-			FROM quizzes q
-			LEFT JOIN questions qu ON q.id = qu.quizId
-			GROUP BY q.id
-			ORDER BY q.createdAt DESC
-		`
-			)
-			.all();
-
+		const quizzes = getAllQuizzesWithQuestionCount();
 		sendJSON(res, 200, quizzes);
 	} catch (error) {
 		console.error("Error fetching quizzes:", error);
@@ -34,85 +29,69 @@ export const getAllQuizzesAdmin = (req, res) => {
 };
 
 // Create new quiz
-export const createQuiz = (req, res) => {
-	let body = "";
+export const createQuiz = async (req, res) => {
+	try {
+		const data = await parseBody(req);
 
-	req.on("data", (chunk) => {
-		body += chunk.toString();
-	});
+		// Validate
+		const validation = validateQuiz(data);
+		if (!validation.isValid) {
+			sendJSON(res, 400, { error: validation.errors.join(", ") });
+			return;
+		}
 
-	req.on("end", () => {
-		try {
-			const data = JSON.parse(body);
+		const result = createQuizService(
+			data.title,
+			data.description || null,
+			data.timeLimit,
+			data.allowedAttempts || 1
+		);
 
-			// Validate
-			const validation = validateQuiz(data);
-			if (!validation.isValid) {
-				sendJSON(res, 400, { error: validation.errors.join(", ") });
-				return;
-			}
-
-			const stmt = db.prepare(`
-				INSERT INTO quizzes (title, description, timeLimit, allowedAttempts, isActive)
-				VALUES (?, ?, ?, ?, 0)
-			`);
-
-			const result = stmt.run(
-				data.title,
-				data.description || null,
-				data.timeLimit,
-				data.allowedAttempts || 1
-			);
-
-			sendJSON(res, 201, {
-				id: result.lastInsertRowid,
-				message: "Quiz created successfully",
-			});
-		} catch (error) {
+		sendJSON(res, 201, {
+			id: result.lastInsertRowid,
+			message: "Quiz created successfully",
+		});
+	} catch (error) {
+		if (error.message === "Invalid JSON") {
+			sendJSON(res, 400, { error: "Invalid JSON in request body" });
+		} else if (error.message === "Request body too large") {
+			sendJSON(res, 413, { error: "Request body too large" });
+		} else {
 			console.error("Error creating quiz:", error);
 			sendJSON(res, 500, { error: "Failed to create quiz" });
 		}
-	});
+	}
 };
 
 // Update quiz
-export const updateQuiz = (req, res, quizId) => {
-	let body = "";
+export const updateQuiz = async (req, res, quizId) => {
+	try {
+		const data = await parseBody(req);
 
-	req.on("data", (chunk) => {
-		body += chunk.toString();
-	});
+		if (!data.title || !data.timeLimit) {
+			sendJSON(res, 400, { error: "Title and time limit are required" });
+			return;
+		}
 
-	req.on("end", () => {
-		try {
-			const { title, description, timeLimit, allowedAttempts } =
-				JSON.parse(body);
+		updateQuizService(
+			quizId,
+			data.title,
+			data.description || null,
+			data.timeLimit,
+			data.allowedAttempts || 1
+		);
 
-			if (!title || !timeLimit) {
-				sendJSON(res, 400, { error: "Title and time limit are required" });
-				return;
-			}
-
-			const stmt = db.prepare(`
-				UPDATE quizzes
-				SET title = ?, description = ?, timeLimit = ?, allowedAttempts = ?
-				WHERE id = ?
-			`);
-
-			stmt.run(
-				title,
-				description || null,
-				timeLimit,
-				allowedAttempts || 1,
-				quizId
-			);
-
-			sendJSON(res, 200, { message: "Quiz updated successfully" });
-		} catch (error) {
+		sendJSON(res, 200, { message: "Quiz updated successfully" });
+	} catch (error) {
+		if (error.message === "Invalid JSON") {
+			sendJSON(res, 400, { error: "Invalid JSON in request body" });
+		} else if (error.message === "Request body too large") {
+			sendJSON(res, 413, { error: "Request body too large" });
+		} else {
 			console.error("Error updating quiz:", error);
 			sendJSON(res, 500, { error: "Failed to update quiz" });
 		}
-	});
+	}
 };
 
 // Delete quiz
@@ -126,8 +105,7 @@ export const deleteQuiz = (req, res, quizId) => {
 		}
 
 		// Delete quiz (cascade will handle questions and attempts)
-		const stmt = db.prepare("DELETE FROM quizzes WHERE id = ?");
-		stmt.run(quizId);
+		deleteQuizService(quizId);
 
 		sendJSON(res, 200, { message: "Quiz deleted successfully" });
 	} catch (error) {
@@ -147,10 +125,10 @@ export const setActiveQuiz = (req, res, quizId) => {
 		}
 
 		// Deactivate all quizzes
-		db.prepare("UPDATE quizzes SET isActive = 0").run();
+		deactivateAllQuizzes();
 
 		// Activate selected quiz
-		db.prepare("UPDATE quizzes SET isActive = 1 WHERE id = ?").run(quizId);
+		activateQuizService(quizId);
 
 		sendJSON(res, 200, { message: "Quiz activated successfully" });
 	} catch (error) {
@@ -162,20 +140,8 @@ export const setActiveQuiz = (req, res, quizId) => {
 // Get all questions (with correct answers for admin)
 export const getAllQuestionsAdmin = (req, res) => {
 	try {
-		const questions = db
-			.prepare(
-				`
-			SELECT * FROM questions ORDER BY quizId, id
-		`
-			)
-			.all();
-
-		const parsedQuestions = questions.map((q) => ({
-			...q,
-			options: JSON.parse(q.options),
-		}));
-
-		sendJSON(res, 200, parsedQuestions);
+		const questions = getAllQuestionsService();
+		sendJSON(res, 200, questions);
 	} catch (error) {
 		console.error("Error fetching questions:", error);
 		sendJSON(res, 500, { error: "Failed to fetch questions" });
@@ -183,112 +149,99 @@ export const getAllQuestionsAdmin = (req, res) => {
 };
 
 // Create new question
-export const createQuestion = (req, res) => {
-	let body = "";
+export const createQuestion = async (req, res) => {
+	try {
+		const data = await parseBody(req);
+		const { quizId, questionText, options, correctAnswerIndex } = data;
 
-	req.on("data", (chunk) => {
-		body += chunk.toString();
-	});
+		// Validate required fields
+		if (
+			!quizId ||
+			!questionText ||
+			!options ||
+			correctAnswerIndex === undefined
+		) {
+			sendJSON(res, 400, { error: "Missing required fields" });
+			return;
+		}
 
-	req.on("end", () => {
-		try {
-			const { quizId, questionText, options, correctAnswerIndex } =
-				JSON.parse(body);
+		// Validate options array
+		if (!Array.isArray(options) || options.length < 2) {
+			sendJSON(res, 400, { error: "At least 2 options are required" });
+			return;
+		}
 
-			if (
-				!quizId ||
-				!questionText ||
-				!options ||
-				correctAnswerIndex === undefined
-			) {
-				sendJSON(res, 400, { error: "Missing required fields" });
-				return;
-			}
+		const result = createQuestionService(
+			quizId,
+			questionText,
+			options,
+			correctAnswerIndex
+		);
 
-			if (!Array.isArray(options) || options.length < 2) {
-				sendJSON(res, 400, { error: "At least 2 options are required" });
-				return;
-			}
-
-			const stmt = db.prepare(`
-				INSERT INTO questions (quizId, questionText, options, correctAnswerIndex)
-				VALUES (?, ?, ?, ?)
-			`);
-
-			const result = stmt.run(
-				quizId,
-				questionText,
-				JSON.stringify(options),
-				correctAnswerIndex
-			);
-
-			sendJSON(res, 201, {
-				id: result.lastInsertRowid,
-				message: "Question created successfully",
-			});
-		} catch (error) {
+		sendJSON(res, 201, {
+			id: result.lastInsertRowid,
+			message: "Question created successfully",
+		});
+	} catch (error) {
+		if (error.message === "Invalid JSON") {
+			sendJSON(res, 400, { error: "Invalid JSON in request body" });
+		} else if (error.message === "Request body too large") {
+			sendJSON(res, 413, { error: "Request body too large" });
+		} else {
 			console.error("Error creating question:", error);
 			sendJSON(res, 500, { error: "Failed to create question" });
 		}
-	});
+	}
 };
 
 // Update question
-export const updateQuestion = (req, res, questionId) => {
-	let body = "";
+export const updateQuestion = async (req, res, questionId) => {
+	try {
+		const data = await parseBody(req);
+		const { quizId, questionText, options, correctAnswerIndex } = data;
 
-	req.on("data", (chunk) => {
-		body += chunk.toString();
-	});
+		// Validate required fields
+		if (
+			!quizId ||
+			!questionText ||
+			!options ||
+			correctAnswerIndex === undefined
+		) {
+			sendJSON(res, 400, { error: "Missing required fields" });
+			return;
+		}
 
-	req.on("end", () => {
-		try {
-			const { quizId, questionText, options, correctAnswerIndex } =
-				JSON.parse(body);
+		// Validate options array
+		if (!Array.isArray(options) || options.length < 2) {
+			sendJSON(res, 400, { error: "At least 2 options are required" });
+			return;
+		}
 
-			if (
-				!quizId ||
-				!questionText ||
-				!options ||
-				correctAnswerIndex === undefined
-			) {
-				sendJSON(res, 400, { error: "Missing required fields" });
-				return;
-			}
+		updateQuestionService(
+			questionId,
+			quizId,
+			questionText,
+			options,
+			correctAnswerIndex
+		);
 
-			if (!Array.isArray(options) || options.length < 2) {
-				sendJSON(res, 400, { error: "At least 2 options are required" });
-				return;
-			}
-
-			const stmt = db.prepare(`
-				UPDATE questions
-				SET quizId = ?, questionText = ?, options = ?, correctAnswerIndex = ?
-				WHERE id = ?
-			`);
-
-			stmt.run(
-				quizId,
-				questionText,
-				JSON.stringify(options),
-				correctAnswerIndex,
-				questionId
-			);
-
-			sendJSON(res, 200, { message: "Question updated successfully" });
-		} catch (error) {
+		sendJSON(res, 200, { message: "Question updated successfully" });
+	} catch (error) {
+		if (error.message === "Invalid JSON") {
+			sendJSON(res, 400, { error: "Invalid JSON in request body" });
+		} else if (error.message === "Request body too large") {
+			sendJSON(res, 413, { error: "Request body too large" });
+		} else {
 			console.error("Error updating question:", error);
 			sendJSON(res, 500, { error: "Failed to update question" });
 		}
-	});
+	}
 };
 
 // Delete question
 export const deleteQuestion = (req, res, questionId) => {
 	try {
-		const stmt = db.prepare("DELETE FROM questions WHERE id = ?");
-		stmt.run(questionId);
-
+		deleteQuestionService(questionId);
 		sendJSON(res, 200, { message: "Question deleted successfully" });
 	} catch (error) {
 		console.error("Error deleting question:", error);
@@ -297,55 +250,38 @@ export const deleteQuestion = (req, res, questionId) => {
 };
 
 // Import questions from file
-export const importQuestions = (req, res) => {
-	let body = "";
+export const importQuestions = async (req, res) => {
+	try {
+		const data = await parseBody(req);
+		const { quizId, questions } = data;
 
-	req.on("data", (chunk) => {
-		body += chunk.toString();
-	});
+		if (!quizId || !Array.isArray(questions) || questions.length === 0) {
+			sendJSON(res, 400, { error: "Invalid import data" });
+			return;
+		}
 
-	req.on("end", () => {
-		try {
-			const { quizId, questions } = JSON.parse(body);
+		// Validate quiz exists
+		const quiz = getQuizById(quizId);
+		if (!quiz) {
+			sendJSON(res, 404, { error: "Quiz not found" });
+			return;
+		}
 
-			if (!quizId || !Array.isArray(questions) || questions.length === 0) {
-				sendJSON(res, 400, { error: "Invalid import data" });
-				return;
-			}
+		// Insert all questions using transaction
+		importQuestionsService(quizId, questions);
 
-			// Validate quiz exists
-			const quiz = getQuizById(quizId);
-			if (!quiz) {
-				sendJSON(res, 404, { error: "Quiz not found" });
-				return;
-			}
-
-			// Insert all questions
-			const stmt = db.prepare(`
-				INSERT INTO questions (quizId, questionText, options, correctAnswerIndex)
-				VALUES (?, ?, ?, ?)
-			`);
-
-			const insertMany = db.transaction((questions) => {
-				for (const q of questions) {
-					stmt.run(
-						quizId,
-						q.questionText,
-						JSON.stringify(q.options),
-						q.correctAnswerIndex
-					);
-				}
-			});
-
-			insertMany(questions);
-
-			sendJSON(res, 200, {
-				message: "Questions imported successfully",
-				count: questions.length,
-			});
-		} catch (error) {
+		sendJSON(res, 200, {
+			message: "Questions imported successfully",
+			count: questions.length,
+		});
+	} catch (error) {
+		if (error.message === "Invalid JSON") {
+			sendJSON(res, 400, { error: "Invalid JSON in request body" });
+		} else if (error.message === "Request body too large") {
+			sendJSON(res, 413, { error: "Request body too large" });
+		} else {
 			console.error("Error importing questions:", error);
 			sendJSON(res, 500, { error: "Failed to import questions" });
 		}
-	});
+	}
 };

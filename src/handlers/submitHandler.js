@@ -7,6 +7,7 @@ import {
 } from "../db/services.js";
 import sendJSON from "../utils/sendJSON.js";
 import { parseBody, sanitizeName } from "../utils/bodyParser.js";
+import { calculateScore, validateAnswersFormat } from "../utils/scoring.js";
 
 const submitQuizHandler = async (req, res) => {
 	try {
@@ -63,7 +64,7 @@ const submitQuizHandler = async (req, res) => {
 			return;
 		}
 
-		// Validate answers array
+		// Validate answers array length
 		if (!Array.isArray(answers) || answers.length !== quizQuestions.length) {
 			sendJSON(res, 400, {
 				error: `Expected ${quizQuestions.length} answers, got ${answers.length}`,
@@ -71,47 +72,15 @@ const submitQuizHandler = async (req, res) => {
 			return;
 		}
 
-		// Validate each answer is a valid number or null
-		const validAnswers = answers.every(
-			(ans) =>
-				ans === null ||
-				(typeof ans === "number" && ans >= 0 && Number.isInteger(ans))
-		);
-
-		if (!validAnswers) {
+		// Validate answer format
+		if (!validateAnswersFormat(answers)) {
 			sendJSON(res, 400, { error: "Invalid answer format" });
 			return;
 		}
 
-		// Calculate score and prepare detailed results
-		let score = 0;
-		const detailedResults = answers.map((selectedIndex, index) => {
-			const question = quizQuestions[index];
-
-			// Validate answer is within bounds
-			const isValidAnswer =
-				selectedIndex !== null &&
-				selectedIndex >= 0 &&
-				selectedIndex < question.options.length;
-
-			const isCorrect =
-				isValidAnswer && selectedIndex === question.correctAnswerIndex;
-
-			if (isCorrect) {
-				score++;
-			}
-
-			return {
-				questionText: question.questionText,
-				options: question.options,
-				selectedAnswer: selectedIndex,
-				correctAnswer: question.correctAnswerIndex,
-				isCorrect: isCorrect,
-			};
-		});
-
-		const totalQuestions = quizQuestions.length;
-		const percentage = Math.round((score / totalQuestions) * 100);
+		// Calculate score and get detailed results
+		const { score, totalQuestions, percentage, detailedResults } =
+			calculateScore(answers, quizQuestions);
 
 		// Store attempt in database
 		const attemptId = createAttempt(
