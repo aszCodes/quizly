@@ -1,88 +1,101 @@
 [
 	{
-		"questionText": "Which data structure uses FIFO (First In First Out) principle?",
+		"questionText": "Which data structure uses FIFO (First In First Out) principle, where the first element added is the first one to be removed?",
 		"options": ["Stack", "Queue", "Array", "Tree"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "A Queue follows FIFO principle, like a line at a store - the first person in line is served first. Stacks use LIFO (Last In First Out)."
 	},
 	{
-		"questionText": "Which data structure uses LIFO (Last In First Out) principle?",
+		"questionText": "Which data structure uses LIFO (Last In First Out) principle, where the last element added is the first one to be removed?",
 		"options": ["Queue", "Stack", "Array", "Linked List"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "A Stack follows LIFO principle, like a stack of plates - you take from the top (last added) first. Queues use FIFO (First In First Out)."
 	},
 	{
 		"questionText": "What is the standard file extension for Python source code files?",
 		"options": [".python", ".py", ".pt", ".pyt"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Python source code files use the .py extension. This tells the operating system and editors that the file contains Python code."
 	},
 	{
-		"questionText": "Which parameter in the print() function controls the separator between values?",
+		"questionText": "Which parameter in the print() function controls the separator between multiple values when printing them together?",
 		"options": ["end", "sep", "separator", "split"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The 'sep' parameter controls what appears between values. For example: print('A', 'B', sep='-') outputs 'A-B'."
 	},
 	{
-		"questionText": "What is the default separator in Python's print() function?",
+		"questionText": "What is the default separator in Python's print() function when printing multiple values?",
 		"options": ["comma", "newline", "space", "tab"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "By default, print() separates multiple values with a single space. Example: print('Hello', 'World') outputs 'Hello World'."
 	},
 	{
-		"questionText": "Which escape character represents a newline in Python?",
+		"questionText": "Which escape character represents a newline (line break) in Python strings?",
 		"options": ["\\t", "\\n", "\\r", "\\b"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "\\n creates a new line. \\t is tab, \\r is carriage return, and \\b is backspace."
 	},
 	{
-		"questionText": "What is the default value of the 'end' parameter in print()?",
+		"questionText": "What is the default value of the 'end' parameter in Python's print() function?",
 		"options": ["space", "empty string", "newline", "tab"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "By default, print() ends with a newline (\\n), which is why each print() statement appears on a new line unless you change the 'end' parameter."
 	},
 	{
 		"questionText": "Which symbol is used for single-line comments in Python?",
 		"options": ["//", "#", "/*", "--"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Python uses # for single-line comments. Everything after # on that line is ignored by Python. // is used in Java/C++, /* */ in C-style languages."
 	},
 	{
-		"questionText": "What escape sequence is used to represent a tab character?",
+		"questionText": "What escape sequence is used to represent a tab character in Python strings?",
 		"options": ["\\n", "\\t", "\\s", "\\tab"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "\\t inserts a tab character (typically 4-8 spaces). \\n is newline, \\s and \\tab are not valid Python escape sequences."
 	},
 	{
-		"questionText": "Which command is used to check Python installation in the terminal?",
+		"questionText": "Which command is used to check your Python installation version in the terminal or command prompt?",
 		"options": [
 			"python -check",
 			"python --version",
 			"python -v",
 			"check python"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The command 'python --version' or 'python -V' displays your installed Python version. This helps verify Python is installed correctly."
 	},
 	{
-		"questionText": "What type of quotes can enclose strings in Python print() function?",
+		"questionText": "What type of quotes can enclose strings in Python's print() function?",
 		"options": [
 			"Only double quotes",
 			"Only single quotes",
 			"Both single and double quotes",
 			"Only backticks"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "Python accepts both single quotes ('text') and double quotes (\"text\") for strings. Choose based on what's inside the string - use single quotes if your string contains double quotes and vice versa."
 	},
 	{
-		"questionText": "In Python, how do you write a backslash character inside a string?",
+		"questionText": "In Python, how do you write a single backslash character inside a string literal?",
 		"options": [
 			"Use single backslash: '\\'",
 			"Use double backslash: '\\\\'",
 			"Use forward slash: '/'",
 			"Use double forward slash: '//'"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "You write '\\\\' in your code (two backslashes) to represent one backslash in the actual string. The first backslash escapes the second one."
 	},
 	{
-		"questionText": "Which of the following is the correct way to print multiple values in Python?",
+		"questionText": "Which of the following is the correct way to print multiple values separated by spaces in Python?",
 		"options": [
 			"print('Name' 'Age')",
 			"print('Name' + 'Age')",
 			"print('Name', 'Age')",
 			"print('Name'; 'Age')"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "Use commas to separate multiple values: print('Name', 'Age') outputs 'Name Age'. Option 1 concatenates without space, option 2 concatenates strings, option 4 has invalid syntax."
 	},
 	{
 		"questionText": "What will be the output of this code?\nprint('Hello', end='')\nprint('World')",
@@ -92,56 +105,68 @@
 			"HelloWorld with no space",
 			"Error"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "The first print() uses end='' (empty string) instead of the default newline, so 'World' appears immediately after 'Hello' with no space or newline between them."
 	},
 	{
-		"questionText": "Which method is NOT a valid way to run Python programs?",
+		"questionText": "Which method is NOT a standard way to run Python programs directly without additional tools?",
 		"options": [
-			"Command line",
-			"IDE Run button",
-			"Interactive Shell",
-			"Compile to .exe first"
+			"Command line using 'python filename.py'",
+			"IDE Run button (like VS Code or PyCharm)",
+			"Interactive Python Shell (REPL)",
+			"Compiling to .exe first using javac"
 		],
-		"correctAnswerIndex": 3
+		"correctAnswerIndex": 3,
+		"explanation": "Python doesn't require compilation like Java. While tools like PyInstaller CAN create .exe files, it's not the standard method. Python code runs directly through the Python interpreter."
 	},
 	{
 		"questionText": "What is the output of: print('A', 'B', 'C', sep='-')?",
 		"options": ["A B C", "A-B-C", "ABC", "A, B, C"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The sep='-' parameter replaces the default space separator with a hyphen, resulting in 'A-B-C'."
 	},
 	{
-		"questionText": "Which extension should you install in VS Code for Python development?",
+		"questionText": "Which extension should you install in VS Code for Python development with features like IntelliSense and debugging?",
 		"options": [
 			"Java Extension Pack",
 			"Python extension by Microsoft",
 			"C/C++ Extension",
 			"Go Extension"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The official Python extension by Microsoft provides syntax highlighting, IntelliSense, debugging, linting, and other essential Python development features in VS Code."
 	},
 	{
 		"questionText": "What can triple quotes (\"\"\" or ''') be used for in Python?",
 		"options": [
 			"Only for single-line strings",
-			"For multi-line strings and documentation",
+			"For multi-line strings and docstrings (documentation)",
 			"For variable names",
 			"For importing modules"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Triple quotes allow strings to span multiple lines and are commonly used for docstrings (function/class documentation). Example: \"\"\"This is a multi-line string\"\"\"."
 	},
 	{
-		"questionText": "Which of the following is a good commenting practice?",
+		"questionText": "Which of the following is a good commenting practice in Python?",
 		"options": [
-			"Comment every single line",
-			"Explain WHY, not WHAT",
+			"Comment every single line of code",
+			"Explain WHY the code does something, not WHAT it does",
 			"Use comments instead of meaningful variable names",
-			"Never use comments"
+			"Never use comments because good code is self-documenting"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Good comments explain the reasoning and purpose (WHY), not the obvious mechanics (WHAT). Use meaningful names for the WHAT, and comments for the WHY. Avoid over-commenting obvious code."
 	},
 	{
-		"questionText": "What does the escape sequence \\\" represent in Python?",
-		"options": ["Single quote", "Double quote", "Backslash", "Tab"],
-		"correctAnswerIndex": 1
+		"questionText": "What does the escape sequence \\\" represent in Python strings?",
+		"options": [
+			"Single quote character",
+			"Double quote character",
+			"Backslash character",
+			"Tab character"
+		],
+		"correctAnswerIndex": 1,
+		"explanation": "\\\" allows you to include a double quote inside a double-quoted string. Example: print(\"He said \\\"Hello\\\"\") outputs: He said \"Hello\""
 	}
 ]

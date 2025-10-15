@@ -2,62 +2,71 @@
 	{
 		"questionText": "What is the correct file extension for Java source code files?",
 		"options": [".class", ".java", ".jar", ".jdk"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Java source code files use the .java extension. After compilation, they become .class files (bytecode). .jar files are Java archives, and .jdk refers to the Java Development Kit."
 	},
 	{
-		"questionText": "Which command is used to compile a Java program?",
+		"questionText": "Which command is used to compile a Java program and create bytecode?",
 		"options": ["java", "javac", "compile", "run"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The 'javac' (Java Compiler) command compiles .java source files into .class bytecode files. Example: javac HelloWorld.java creates HelloWorld.class"
 	},
 	{
 		"questionText": "Which command is used to run a compiled Java program?",
 		"options": ["javac", "run", "java", "execute"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "The 'java' command runs compiled Java bytecode. Example: java HelloWorld (note: no .class extension). The JVM (Java Virtual Machine) executes the bytecode."
 	},
 	{
-		"questionText": "What is the relationship between class name and file name in Java?",
+		"questionText": "For public classes in Java, what is the relationship between the class name and the file name?",
 		"options": [
-			"They can be different",
-			"File name must match class name exactly",
+			"They can be completely different",
+			"File name must match the public class name exactly (case-sensitive)",
 			"File name should be lowercase version of class name",
 			"Only the first letter must match"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "A public class MUST be in a file with the exact same name (case-sensitive). If your class is 'public class HelloWorld', the file must be 'HelloWorld.java'. Non-public classes can have different names."
 	},
 	{
-		"questionText": "What symbol must end every Java statement?",
+		"questionText": "What symbol must end every statement in Java?",
 		"options": ["Period (.)", "Colon (:)", "Semicolon (;)", "Comma (,)"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "Every Java statement must end with a semicolon (;). This tells the compiler where one statement ends and another begins. Forgetting it causes compilation errors."
 	},
 	{
-		"questionText": "What method is used to print output with a new line in Java?",
+		"questionText": "What method is used to print output with a new line automatically added at the end in Java?",
 		"options": [
 			"System.out.print()",
 			"System.out.println()",
 			"System.print()",
 			"print()"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "System.out.println() prints text and adds a newline at the end, moving the cursor to the next line. 'println' stands for 'print line'."
 	},
 	{
-		"questionText": "What is the difference between print() and println()?",
+		"questionText": "What is the difference between print() and println() in Java?",
 		"options": [
-			"No difference",
-			"println() adds a new line after printing",
-			"print() is faster",
+			"No difference, they work the same",
+			"println() adds a new line (line break) after printing",
+			"print() is faster than println()",
 			"println() only works with strings"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "print() displays output without a newline, keeping the cursor on the same line. println() adds a newline after output, moving to the next line. Both can print any data type."
 	},
 	{
-		"questionText": "Which escape sequence represents a new line in Java?",
+		"questionText": "Which escape sequence represents a new line (line break) in Java?",
 		"options": ["\\t", "\\n", "\\r", "\\b"],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "\\n creates a new line. Example: System.out.print(\"Hello\\nWorld\"); prints Hello on one line and World on the next. \\t is tab, \\r is carriage return, \\b is backspace."
 	},
 	{
 		"questionText": "Which escape sequence represents a tab character in Java?",
 		"options": ["\\n", "\\s", "\\t", "\\tab"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "\\t inserts a tab character (typically 4-8 spaces of indentation). Example: System.out.println(\"Name:\\tJohn\"); creates space between Name: and John."
 	},
 	{
 		"questionText": "How do you write a single-line comment in Java?",
@@ -67,7 +76,8 @@
 			"<!-- This is a comment -->",
 			"' This is a comment"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Java uses // for single-line comments. Everything after // on that line is ignored by the compiler. # is used in Python, <!-- --> in HTML, and ' in Visual Basic."
 	},
 	{
 		"questionText": "What is the correct syntax for a multi-line comment in Java?",
@@ -77,86 +87,101 @@
 			"<!-- comment -->",
 			"''' comment '''"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Multi-line comments in Java use /* to start and */ to end. Everything between is ignored by the compiler. Example: /* This is a multi-line comment spanning several lines */"
 	},
 	{
-		"questionText": "What is the correct capitalization for System.out.println()?",
+		"questionText": "What is the correct capitalization for System.out.println() in Java?",
 		"options": [
 			"system.out.println()",
 			"System.Out.Println()",
 			"System.out.println()",
 			"SYSTEM.OUT.PRINTLN()"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "Java is case-sensitive. The correct syntax is System.out.println() with capital 'S', lowercase 'out', and lowercase 'println'. Any variation will cause a compilation error."
 	},
 	{
-		"questionText": "What characters are used to define code blocks in Java?",
+		"questionText": "What characters are used to define code blocks (like method bodies and class bodies) in Java?",
 		"options": [
 			"Parentheses ( )",
 			"Square brackets [ ]",
 			"Curly braces { }",
 			"Angle brackets < >"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "Curly braces { } define code blocks in Java. They mark the beginning and end of classes, methods, loops, and conditionals. Proper brace matching is essential."
 	},
 	{
-		"questionText": "Which method must every Java application have?",
+		"questionText": "Which method must every standalone Java application have as its entry point?",
 		"options": ["start()", "run()", "main()", "execute()"],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "The main() method is the entry point where program execution begins. The JVM looks for this method to start running your program. Without it, the program won't run."
 	},
 	{
-		"questionText": "What is the correct signature for the main method in Java?",
+		"questionText": "What is the correct signature (declaration) for the main method in Java?",
 		"options": [
 			"public void main()",
 			"static void main(String[] args)",
 			"public static void main(String[] args)",
 			"public main(String[] args)"
 		],
-		"correctAnswerIndex": 2
+		"correctAnswerIndex": 2,
+		"explanation": "The main method must be: public (accessible), static (can run without creating an object), void (returns nothing), and accept String[] args (command-line arguments array)."
 	},
 	{
-		"questionText": "If your class is named 'HelloWorld', what should your file be named?",
+		"questionText": "If your public class is named 'HelloWorld', what must your Java file be named?",
 		"options": [
 			"helloworld.java",
 			"HelloWorld.java",
 			"hello_world.java",
 			"HELLOWORLD.java"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "The filename must exactly match the public class name, including capitalization: HelloWorld.java. Java is case-sensitive, so any variation will cause a compilation error."
 	},
 	{
-		"questionText": "How do you print a backslash (\\) in Java?",
+		"questionText": "How do you include a single backslash character (\\) in a Java string literal?",
 		"options": [
-			"Use single backslash: '\\'",
-			"Use double backslash: '\\\\'",
-			"Use forward slash: '/'",
+			"Use single backslash: \"\\\"",
+			"Use double backslash (escape it): \"\\\\\"",
+			"Use forward slash: \"/\"",
 			"Use \\back"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "In Java code, write \\\\ (two backslashes) to represent one backslash in the actual string. The first backslash escapes the second. Example: String path = \"C:\\\\Users\\\\\";"
 	},
 	{
-		"questionText": "How do you print double quotes (\") inside a string in Java?",
+		"questionText": "How do you include double quotes (\") inside a string literal in Java?",
 		"options": [
 			"Use single quotes instead",
-			"Use \\\"",
-			"Use ''",
+			"Use the escape sequence: \\\"",
+			"Use two single quotes: ''",
 			"Use {{\"}}"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Use \\\" to include double quotes in a string. Example: System.out.println(\"He said \\\"Hello\\\"\"); outputs: He said \"Hello\". The backslash escapes the quote."
 	},
 	{
-		"questionText": "What file is created after compiling a Java program?",
-		"options": [".exe file", ".class file", ".jar file", ".bin file"],
-		"correctAnswerIndex": 1
+		"questionText": "What type of file is created after successfully compiling a Java program?",
+		"options": [
+			".exe executable file",
+			".class bytecode file",
+			".jar archive file",
+			".bin binary file"
+		],
+		"correctAnswerIndex": 1,
+		"explanation": "The Java compiler (javac) creates .class files containing bytecode. This bytecode runs on any platform with a JVM, making Java platform-independent. .jar files are archives of multiple .class files."
 	},
 	{
 		"questionText": "What happens if you forget a semicolon at the end of a statement in Java?",
 		"options": [
 			"The program runs normally",
-			"A compilation error occurs",
-			"A warning appears but program runs",
-			"Only a runtime error occurs"
+			"A compilation error occurs and the program won't compile",
+			"A warning appears but the program still runs",
+			"Only a runtime error occurs when you run the program"
 		],
-		"correctAnswerIndex": 1
+		"correctAnswerIndex": 1,
+		"explanation": "Missing semicolons cause compilation errors. The compiler cannot translate the code to bytecode and displays an error message like 'error: ';' expected'. The program won't run until fixed."
 	}
 ]
