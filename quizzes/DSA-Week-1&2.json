@@ -1,0 +1,147 @@
+[
+	{
+		"questionText": "Which data structure uses FIFO (First In First Out) principle?",
+		"options": ["Stack", "Queue", "Array", "Tree"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which data structure uses LIFO (Last In First Out) principle?",
+		"options": ["Queue", "Stack", "Array", "Linked List"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the standard file extension for Python source code files?",
+		"options": [".python", ".py", ".pt", ".pyt"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which parameter in the print() function controls the separator between values?",
+		"options": ["end", "sep", "separator", "split"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the default separator in Python's print() function?",
+		"options": ["comma", "newline", "space", "tab"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which escape character represents a newline in Python?",
+		"options": ["\\t", "\\n", "\\r", "\\b"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the default value of the 'end' parameter in print()?",
+		"options": ["space", "empty string", "newline", "tab"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which symbol is used for single-line comments in Python?",
+		"options": ["//", "#", "/*", "--"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What escape sequence is used to represent a tab character?",
+		"options": ["\\n", "\\t", "\\s", "\\tab"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which command is used to check Python installation in the terminal?",
+		"options": [
+			"python -check",
+			"python --version",
+			"python -v",
+			"check python"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What type of quotes can enclose strings in Python print() function?",
+		"options": [
+			"Only double quotes",
+			"Only single quotes",
+			"Both single and double quotes",
+			"Only backticks"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "In Python, how do you write a backslash character inside a string?",
+		"options": [
+			"Use single backslash: '\\'",
+			"Use double backslash: '\\\\'",
+			"Use forward slash: '/'",
+			"Use double forward slash: '//'"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which of the following is the correct way to print multiple values in Python?",
+		"options": [
+			"print('Name' 'Age')",
+			"print('Name' + 'Age')",
+			"print('Name', 'Age')",
+			"print('Name'; 'Age')"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What will be the output of this code?\nprint('Hello', end='')\nprint('World')",
+		"options": [
+			"Hello on one line, World on next line",
+			"Hello World on the same line",
+			"HelloWorld with no space",
+			"Error"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which method is NOT a valid way to run Python programs?",
+		"options": [
+			"Command line",
+			"IDE Run button",
+			"Interactive Shell",
+			"Compile to .exe first"
+		],
+		"correctAnswerIndex": 3
+	},
+	{
+		"questionText": "What is the output of: print('A', 'B', 'C', sep='-')?",
+		"options": ["A B C", "A-B-C", "ABC", "A, B, C"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which extension should you install in VS Code for Python development?",
+		"options": [
+			"Java Extension Pack",
+			"Python extension by Microsoft",
+			"C/C++ Extension",
+			"Go Extension"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What can triple quotes (\"\"\" or ''') be used for in Python?",
+		"options": [
+			"Only for single-line strings",
+			"For multi-line strings and documentation",
+			"For variable names",
+			"For importing modules"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which of the following is a good commenting practice?",
+		"options": [
+			"Comment every single line",
+			"Explain WHY, not WHAT",
+			"Use comments instead of meaningful variable names",
+			"Never use comments"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What does the escape sequence \\\" represent in Python?",
+		"options": ["Single quote", "Double quote", "Backslash", "Tab"],
+		"correctAnswerIndex": 1
+	}
+]

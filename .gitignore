@@ -5,6 +5,3 @@ node_modules
 *.db-journal
 *.db-wal
 *.db-shm
-DSA*.json
-IP*.json
-JAVA*.json

@@ -1,0 +1,162 @@
+[
+	{
+		"questionText": "What is the correct file extension for Java source code files?",
+		"options": [".class", ".java", ".jar", ".jdk"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which command is used to compile a Java program?",
+		"options": ["java", "javac", "compile", "run"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which command is used to run a compiled Java program?",
+		"options": ["javac", "run", "java", "execute"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What is the relationship between class name and file name in Java?",
+		"options": [
+			"They can be different",
+			"File name must match class name exactly",
+			"File name should be lowercase version of class name",
+			"Only the first letter must match"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What symbol must end every Java statement?",
+		"options": ["Period (.)", "Colon (:)", "Semicolon (;)", "Comma (,)"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What method is used to print output with a new line in Java?",
+		"options": [
+			"System.out.print()",
+			"System.out.println()",
+			"System.print()",
+			"print()"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the difference between print() and println()?",
+		"options": [
+			"No difference",
+			"println() adds a new line after printing",
+			"print() is faster",
+			"println() only works with strings"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which escape sequence represents a new line in Java?",
+		"options": ["\\t", "\\n", "\\r", "\\b"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which escape sequence represents a tab character in Java?",
+		"options": ["\\n", "\\s", "\\t", "\\tab"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "How do you write a single-line comment in Java?",
+		"options": [
+			"# This is a comment",
+			"// This is a comment",
+			"<!-- This is a comment -->",
+			"' This is a comment"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the correct syntax for a multi-line comment in Java?",
+		"options": [
+			"// comment //",
+			"/* comment */",
+			"<!-- comment -->",
+			"''' comment '''"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the correct capitalization for System.out.println()?",
+		"options": [
+			"system.out.println()",
+			"System.Out.Println()",
+			"System.out.println()",
+			"SYSTEM.OUT.PRINTLN()"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What characters are used to define code blocks in Java?",
+		"options": [
+			"Parentheses ( )",
+			"Square brackets [ ]",
+			"Curly braces { }",
+			"Angle brackets < >"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which method must every Java application have?",
+		"options": ["start()", "run()", "main()", "execute()"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What is the correct signature for the main method in Java?",
+		"options": [
+			"public void main()",
+			"static void main(String[] args)",
+			"public static void main(String[] args)",
+			"public main(String[] args)"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "If your class is named 'HelloWorld', what should your file be named?",
+		"options": [
+			"helloworld.java",
+			"HelloWorld.java",
+			"hello_world.java",
+			"HELLOWORLD.java"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "How do you print a backslash (\\) in Java?",
+		"options": [
+			"Use single backslash: '\\'",
+			"Use double backslash: '\\\\'",
+			"Use forward slash: '/'",
+			"Use \\back"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "How do you print double quotes (\") inside a string in Java?",
+		"options": [
+			"Use single quotes instead",
+			"Use \\\"",
+			"Use ''",
+			"Use {{\"}}"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What file is created after compiling a Java program?",
+		"options": [".exe file", ".class file", ".jar file", ".bin file"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What happens if you forget a semicolon at the end of a statement in Java?",
+		"options": [
+			"The program runs normally",
+			"A compilation error occurs",
+			"A warning appears but program runs",
+			"Only a runtime error occurs"
+		],
+		"correctAnswerIndex": 1
+	}
+]

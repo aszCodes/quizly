@@ -1,0 +1,152 @@
+[
+	{
+		"questionText": "What does HTML stand for?",
+		"options": [
+			"Hyper Text Markup Language",
+			"High Tech Modern Language",
+			"Home Tool Markup Language",
+			"Hyperlinks and Text Markup Language"
+		],
+		"correctAnswerIndex": 0
+	},
+	{
+		"questionText": "Which of the following is a self-closing tag?",
+		"options": ["<p>", "<div>", "<img />", "<h1>"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What does the <!DOCTYPE html> declaration do?",
+		"options": [
+			"Creates a new HTML file",
+			"Tells the browser this is HTML5",
+			"Links to CSS",
+			"Closes the document"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Where does the visible content of a webpage go?",
+		"options": [
+			"In the <head> section",
+			"In the <body> section",
+			"In the <html> tag",
+			"In the <!DOCTYPE> declaration"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What attribute is used to specify the destination of a link in an <a> tag?",
+		"options": ["src", "link", "href", "url"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which attribute provides alternative text for an image?",
+		"options": ["title", "alt", "text", "caption"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the purpose of the 'id' attribute?",
+		"options": [
+			"To style multiple elements",
+			"To create a unique identifier for an element",
+			"To link to external files",
+			"To add comments"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which attribute is used to apply CSS classes to an element?",
+		"options": ["id", "style", "class", "css"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "In HTML family tree, what is a child element?",
+		"options": [
+			"An element at the same level as another",
+			"An element inside another element",
+			"The first element on a page",
+			"An element with no content"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What are sibling elements?",
+		"options": [
+			"Elements that contain other elements",
+			"Elements inside another element",
+			"Elements that share the same parent",
+			"Elements at the top of the page"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Where should the <title> tag be placed?",
+		"options": [
+			"In the <body> section",
+			"In the <head> section",
+			"Before <!DOCTYPE>",
+			"After </html>"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the correct file extension for HTML documents?",
+		"options": [".htm", ".html", ".web", ".page"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which tag is used to create the largest heading?",
+		"options": ["<h6>", "<h3>", "<h1>", "<heading>"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What attribute specifies the source file for an image?",
+		"options": ["href", "link", "src", "file"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Which tag is used to create a line break?",
+		"options": ["<break>", "<br />", "<lb>", "<newline>"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which tag is used for creating a paragraph?",
+		"options": ["<para>", "<pg>", "<p>", "<text>"],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "What is the default homepage filename for most websites?",
+		"options": ["home.html", "index.html", "main.html", "default.html"],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "Which attribute opens a link in a new browser tab?",
+		"options": [
+			"target='_new'",
+			"target='_blank'",
+			"newtab='true'",
+			"window='new'"
+		],
+		"correctAnswerIndex": 1
+	},
+	{
+		"questionText": "What is the correct HTML comment syntax?",
+		"options": [
+			"// This is a comment",
+			"/* This is a comment */",
+			"<!-- This is a comment -->",
+			"# This is a comment"
+		],
+		"correctAnswerIndex": 2
+	},
+	{
+		"questionText": "Can an HTML element have multiple attributes?",
+		"options": [
+			"No, only one attribute per element",
+			"Yes, multiple attributes can be used",
+			"Only if they are the same type",
+			"Only in the <body> tag"
+		],
+		"correctAnswerIndex": 1
+	}
+]
