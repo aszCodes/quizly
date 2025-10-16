@@ -1,172 +1,222 @@
 [
-	{
-		"questionText": "What is the full meaning of the acronym HTML?",
-		"options": [
-			"Home Tool Markup Language",
-			"Hyperlinks and Text Markup Language",
-			"Hyper Text Markup Language",
-			"High Tech Modern Language"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "HTML stands for Hyper Text Markup Language. It is the standard markup language for creating web pages and defining their structure and content."
-	},
-	{
-		"questionText": "Which tag doesn't need a closing tag because it's self-closing?",
-		"options": ["<h1>", "<div>", "<p>", "<img />"],
-		"correctAnswerIndex": 3,
-		"explanation": "The <img /> tag is self-closing since images don't contain nested elements. Other self-closing tags include <br />, <hr />, and <input />."
-	},
-	{
-		"questionText": "What is the purpose of <!DOCTYPE html> at the start of an HTML file?",
-		"options": [
-			"Closes the document",
-			"Creates a new HTML file",
-			"Tells the browser this is HTML5",
-			"Links to CSS"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "<!DOCTYPE html> declares the document as HTML5, helping browsers render the page properly. It should be the first line in any HTML document."
-	},
-	{
-		"questionText": "Which section contains all the visible content of a webpage?",
-		"options": [
-			"In the <!DOCTYPE> declaration",
-			"In the <body> section",
-			"In the <html> tag",
-			"In the <head> section"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "The <body> section holds all visible content like text, images, and links. The <head> contains metadata, while <html> wraps everything."
-	},
-	{
-		"questionText": "Which attribute specifies where a hyperlink should navigate to?",
-		"options": ["url", "href", "src", "link"],
-		"correctAnswerIndex": 1,
-		"explanation": "The 'href' (hypertext reference) attribute sets the link destination. Example: <a href=\"https://example.com\">Visit</a>. 'src' is for images."
-	},
-	{
-		"questionText": "Which attribute describes an image when it can't be shown?",
-		"options": ["caption", "alt", "title", "text"],
-		"correctAnswerIndex": 1,
-		"explanation": "The 'alt' attribute provides descriptive text for images, crucial for accessibility and when images don't load. Example: <img src=\"photo.jpg\" alt=\"Mountain view\" />"
-	},
-	{
-		"questionText": "What does the 'id' attribute do in HTML?",
-		"options": [
-			"To add comments to the HTML",
-			"To style multiple elements with the same styles",
-			"To create a unique identifier for a single element",
-			"To link to external files"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "The 'id' attribute assigns a unique identifier to ONE element. It's used with CSS, JavaScript, or anchor links. Each id must be unique per page."
-	},
-	{
-		"questionText": "Which attribute lets you assign CSS classes to an HTML element?",
-		"options": ["css", "id", "style", "class"],
-		"correctAnswerIndex": 3,
-		"explanation": "The 'class' attribute applies CSS classes. Multiple elements can share classes, and elements can have multiple classes. Example: <div class=\"card featured\">."
-	},
-	{
-		"questionText": "What is a child element in the HTML DOM structure?",
-		"options": [
-			"An element with no content",
-			"An element at the same level as another element",
-			"The first element on a page",
-			"An element directly nested inside another element"
-		],
-		"correctAnswerIndex": 3,
-		"explanation": "A child element is nested directly inside its parent. Example: In <ul><li>Item</li></ul>, the <li> is a child of <ul>. Same-level elements are siblings."
-	},
-	{
-		"questionText": "How are sibling elements related in HTML?",
-		"options": [
-			"Elements that share the same parent element",
-			"Elements that contain other elements",
-			"Elements at the top of the page",
-			"Elements nested inside another element"
-		],
-		"correctAnswerIndex": 0,
-		"explanation": "Siblings share the same parent and exist at the same level. Example: In <nav><a>Home</a><a>About</a></nav>, both <a> tags are siblings."
-	},
-	{
-		"questionText": "In which section should you place the <title> tag?",
-		"options": [
-			"After </html>",
-			"In the <head> section",
-			"Before <!DOCTYPE>",
-			"In the <body> section"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "The <title> tag belongs in <head> and sets the page title in browser tabs and search results. Example: <head><title>Home Page</title></head>"
-	},
-	{
-		"questionText": "What is the standard file extension for HTML files?",
-		"options": [".page", ".htm", ".web", ".html"],
-		"correctAnswerIndex": 3,
-		"explanation": "While .htm is valid, .html is the preferred standard extension. The .htm extension comes from old systems limited to 3-character extensions."
-	},
-	{
-		"questionText": "Which heading tag creates the largest heading?",
-		"options": ["<heading>", "<h1>", "<h6>", "<h3>"],
-		"correctAnswerIndex": 1,
-		"explanation": "h1 is the largest heading, representing the main page title. Headings range from h1 (largest) to h6 (smallest)."
-	},
-	{
-		"questionText": "Which attribute tells the browser where to find an image file?",
-		"options": ["file", "href", "link", "src"],
-		"correctAnswerIndex": 3,
-		"explanation": "The 'src' (source) attribute points to the image location. 'href' is for hyperlinks."
-	},
-	{
-		"questionText": "Which tag creates a line break?",
-		"options": ["<newline>", "<break>", "<lb>", "<br />"],
-		"correctAnswerIndex": 3,
-		"explanation": "<br /> is self-closing and creates a line break without starting a new paragraph. Useful for addresses, poems, or lyrics."
-	},
-	{
-		"questionText": "Which tag defines a text paragraph?",
-		"options": ["<text>", "<p>", "<para>", "<pg>"],
-		"correctAnswerIndex": 1,
-		"explanation": "The <p> tag creates paragraphs. Browsers add automatic spacing before and after."
-	},
-	{
-		"questionText": "What default filename do web servers look for as the homepage?",
-		"options": ["default.html", "home.html", "main.html", "index.html"],
-		"correctAnswerIndex": 3,
-		"explanation": "Web servers automatically serve 'index.html' when accessing a directory. Visiting 'site.com/' loads 'site.com/index.html' by default."
-	},
-	{
-		"questionText": "How do you make a link open in a new tab?",
-		"options": [
-			"window='new'",
-			"target='_new'",
-			"newtab='true'",
-			"target='_blank'"
-		],
-		"correctAnswerIndex": 3,
-		"explanation": "target='_blank' opens links in new tabs/windows. Example: <a href=\"page.html\" target=\"_blank\">New tab</a>. Other values include _self (same tab)."
-	},
-	{
-		"questionText": "How do you write comments in HTML?",
-		"options": [
-			"# This is a comment",
-			"// This is a comment",
-			"<!-- This is a comment -->",
-			"/* This is a comment */"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "HTML comments use <!-- comment -->. They're invisible to users but visible in source code. // is JavaScript, /* */ is CSS, # is Python."
-	},
-	{
-		"questionText": "Is it possible to use multiple attributes in a single HTML tag?",
-		"options": [
-			"Only in the <body> tag",
-			"Yes, multiple attributes can be used separated by spaces",
-			"No, only one attribute per element",
-			"Only if they are the same type"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Elements can have multiple space-separated attributes. Each provides different information."
-	}
+    {
+        "questionText": "What is the full meaning of the acronym HTML?",
+        "options": [
+            "Home Tool Markup Language",
+            "Hyperlinks and Text Markup Language",
+            "Hyper Text Markup Language",
+            "High Tech Modern Language"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "HTML stands for Hyper Text Markup Language. It is the standard markup language for creating web pages and defining their structure and content."
+    },
+    {
+        "questionText": "Which tag doesn't need a closing tag because it's self-closing?",
+        "options": [
+            "<h1>",
+            "<div>",
+            "<p>",
+            "<img />"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "The &lt;img /&gt; tag is self-closing since images don&#x27;t contain nested elements. Other self-closing tags include &lt;br /&gt;, &lt;hr /&gt;, and &lt;input /&gt;."
+    },
+    {
+        "questionText": "What is the purpose of <!DOCTYPE html> at the start of an HTML file?",
+        "options": [
+            "Closes the document",
+            "Creates a new HTML file",
+            "Tells the browser this is HTML5",
+            "Links to CSS"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "&lt;!DOCTYPE html&gt; declares the document as HTML5, helping browsers render the page properly. It should be the first line in any HTML document."
+    },
+    {
+        "questionText": "Which section contains all the visible content of a webpage?",
+        "options": [
+            "In the <!DOCTYPE> declaration",
+            "In the <body> section",
+            "In the <html> tag",
+            "In the <head> section"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &lt;body&gt; section holds all visible content like text, images, and links. The &lt;head&gt; contains metadata, while &lt;html&gt; wraps everything."
+    },
+    {
+        "questionText": "Which attribute specifies where a hyperlink should navigate to?",
+        "options": [
+            "url",
+            "href",
+            "src",
+            "link"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &#x27;href&#x27; (hypertext reference) attribute sets the link destination. Example: &lt;a href=&quot;https://example.com&quot;&gt;Visit&lt;/a&gt;. &#x27;src&#x27; is for images."
+    },
+    {
+        "questionText": "Which attribute describes an image when it can't be shown?",
+        "options": [
+            "caption",
+            "alt",
+            "title",
+            "text"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &#x27;alt&#x27; attribute provides descriptive text for images, crucial for accessibility and when images don&#x27;t load. Example: &lt;img src=&quot;photo.jpg&quot; alt=&quot;Mountain view&quot; /&gt;"
+    },
+    {
+        "questionText": "What does the 'id' attribute do in HTML?",
+        "options": [
+            "To add comments to the HTML",
+            "To style multiple elements with the same styles",
+            "To create a unique identifier for a single element",
+            "To link to external files"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "The &#x27;id&#x27; attribute assigns a unique identifier to ONE element. It&#x27;s used with CSS, JavaScript, or anchor links. Each id must be unique per page."
+    },
+    {
+        "questionText": "Which attribute lets you assign CSS classes to an HTML element?",
+        "options": [
+            "css",
+            "id",
+            "style",
+            "class"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "The &#x27;class&#x27; attribute applies CSS classes. Multiple elements can share classes, and elements can have multiple classes. Example: &lt;div class=&quot;card featured&quot;&gt;."
+    },
+    {
+        "questionText": "What is a child element in the HTML DOM structure?",
+        "options": [
+            "An element with no content",
+            "An element at the same level as another element",
+            "The first element on a page",
+            "An element directly nested inside another element"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "A child element is nested directly inside its parent. Example: In &lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;, the &lt;li&gt; is a child of &lt;ul&gt;. Same-level elements are siblings."
+    },
+    {
+        "questionText": "How are sibling elements related in HTML?",
+        "options": [
+            "Elements that share the same parent element",
+            "Elements that contain other elements",
+            "Elements at the top of the page",
+            "Elements nested inside another element"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "Siblings share the same parent and exist at the same level. Example: In &lt;nav&gt;&lt;a&gt;Home&lt;/a&gt;&lt;a&gt;About&lt;/a&gt;&lt;/nav&gt;, both &lt;a&gt; tags are siblings."
+    },
+    {
+        "questionText": "In which section should you place the <title> tag?",
+        "options": [
+            "After </html>",
+            "In the <head> section",
+            "Before <!DOCTYPE>",
+            "In the <body> section"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &lt;title&gt; tag belongs in &lt;head&gt; and sets the page title in browser tabs and search results. Example: &lt;head&gt;&lt;title&gt;Home Page&lt;/title&gt;&lt;/head&gt;"
+    },
+    {
+        "questionText": "What is the standard file extension for HTML files?",
+        "options": [
+            ".page",
+            ".htm",
+            ".web",
+            ".html"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "While .htm is valid, .html is the preferred standard extension. The .htm extension comes from old systems limited to 3-character extensions."
+    },
+    {
+        "questionText": "Which heading tag creates the largest heading?",
+        "options": [
+            "<heading>",
+            "<h1>",
+            "<h6>",
+            "<h3>"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "h1 is the largest heading, representing the main page title. Headings range from h1 (largest) to h6 (smallest)."
+    },
+    {
+        "questionText": "Which attribute tells the browser where to find an image file?",
+        "options": [
+            "file",
+            "href",
+            "link",
+            "src"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "The &#x27;src&#x27; (source) attribute points to the image location. &#x27;href&#x27; is for hyperlinks."
+    },
+    {
+        "questionText": "Which tag creates a line break?",
+        "options": [
+            "<newline>",
+            "<break>",
+            "<lb>",
+            "<br />"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "&lt;br /&gt; is self-closing and creates a line break without starting a new paragraph. Useful for addresses, poems, or lyrics."
+    },
+    {
+        "questionText": "Which tag defines a text paragraph?",
+        "options": [
+            "<text>",
+            "<p>",
+            "<para>",
+            "<pg>"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &lt;p&gt; tag creates paragraphs. Browsers add automatic spacing before and after."
+    },
+    {
+        "questionText": "What default filename do web servers look for as the homepage?",
+        "options": [
+            "default.html",
+            "home.html",
+            "main.html",
+            "index.html"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Web servers automatically serve &#x27;index.html&#x27; when accessing a directory. Visiting &#x27;site.com/&#x27; loads &#x27;site.com/index.html&#x27; by default."
+    },
+    {
+        "questionText": "How do you make a link open in a new tab?",
+        "options": [
+            "window='new'",
+            "target='_new'",
+            "newtab='true'",
+            "target='_blank'"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "target=&#x27;_blank&#x27; opens links in new tabs/windows. Example: &lt;a href=&quot;page.html&quot; target=&quot;_blank&quot;&gt;New tab&lt;/a&gt;. Other values include _self (same tab)."
+    },
+    {
+        "questionText": "How do you write comments in HTML?",
+        "options": [
+            "# This is a comment",
+            "// This is a comment",
+            "<!-- This is a comment -->",
+            "/* This is a comment */"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "HTML comments use &lt;!-- comment --&gt;. They&#x27;re invisible to users but visible in source code. // is JavaScript, /* */ is CSS, # is Python."
+    },
+    {
+        "questionText": "Is it possible to use multiple attributes in a single HTML tag?",
+        "options": [
+            "Only in the <body> tag",
+            "Yes, multiple attributes can be used separated by spaces",
+            "No, only one attribute per element",
+            "Only if they are the same type"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Elements can have multiple space-separated attributes. Each provides different information."
+    }
 ]

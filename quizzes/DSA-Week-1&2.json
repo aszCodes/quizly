@@ -1,182 +1,222 @@
 [
-	{
-		"questionText": "In which data structure is the first element added also the first one to be removed?",
-		"options": ["Tree", "Stack", "Queue", "Array"],
-		"correctAnswerIndex": 2,
-		"explanation": "A Queue follows FIFO (First In First Out) principle, similar to people waiting in line at a checkout - the first person who arrives is served first."
-	},
-	{
-		"questionText": "Which principle does a Stack data structure follow?",
-		"options": [
-			"LIFO (Last In First Out)",
-			"FIFO (First In First Out)",
-			"Random Access",
-			"Sequential Access"
-		],
-		"correctAnswerIndex": 0,
-		"explanation": "A Stack follows LIFO principle, like stacking plates - you remove the top plate (most recently added) first."
-	},
-	{
-		"questionText": "What file extension is used for Python programs?",
-		"options": [".pyt", ".python", ".pt", ".py"],
-		"correctAnswerIndex": 3,
-		"explanation": "Python programs use the .py extension. This helps the system identify files containing Python code."
-	},
-	{
-		"questionText": "What does the 'sep' parameter do in Python's print() function?",
-		"options": [
-			"Ends the output",
-			"Controls spacing between printed values",
-			"Starts a new line",
-			"Adds indentation"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "The 'sep' parameter determines what appears between values. Example: print('X', 'Y', sep='*') outputs 'X*Y'."
-	},
-	{
-		"questionText": "When printing multiple values with print(), what separator is used by default?",
-		"options": ["newline", "tab", "comma", "space"],
-		"correctAnswerIndex": 3,
-		"explanation": "Python's print() function uses a single space as the default separator. Example: print('Hi', 'there') outputs 'Hi there'."
-	},
-	{
-		"questionText": "Which escape sequence creates a new line in Python?",
-		"options": ["\\b", "\\n", "\\t", "\\r"],
-		"correctAnswerIndex": 1,
-		"explanation": "\\n creates a line break. \\t is for tabs, \\r is carriage return, and \\b is backspace."
-	},
-	{
-		"questionText": "By default, what does Python's print() function add at the end of output?",
-		"options": ["tab", "space", "newline", "empty string"],
-		"correctAnswerIndex": 2,
-		"explanation": "The default 'end' parameter is a newline (\\n), which is why consecutive print() statements appear on separate lines unless modified."
-	},
-	{
-		"questionText": "In Python, which character starts a single-line comment?",
-		"options": ["--", "//", "/*", "#"],
-		"correctAnswerIndex": 3,
-		"explanation": "Python uses # for single-line comments. Text after # is ignored during execution. // is for Java/C++, /* */ for C-style languages."
-	},
-	{
-		"questionText": "How do you insert a tab in a Python string?",
-		"options": ["\\s", "\\n", "\\tab", "\\t"],
-		"correctAnswerIndex": 3,
-		"explanation": "\\t creates a tab character (usually 4-8 spaces). \\n creates a new line, while \\s and \\tab aren't valid escape sequences."
-	},
-	{
-		"questionText": "How can you verify which Python version is installed on your system?",
-		"options": [
-			"check python",
-			"python -check",
-			"python -v",
-			"python --version"
-		],
-		"correctAnswerIndex": 3,
-		"explanation": "Running 'python --version' or 'python -V' in your terminal shows the installed Python version number."
-	},
-	{
-		"questionText": "Which types of quotation marks are valid for strings in Python?",
-		"options": [
-			"Only backticks",
-			"Both single and double quotes",
-			"Only double quotes",
-			"Only single quotes"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Python allows both single quotes ('text') and double quotes (\"text\") for strings. Choose based on convenience and what's inside the string."
-	},
-	{
-		"questionText": "How do you represent a single backslash in a Python string?",
-		"options": [
-			"Use forward slash: '/'",
-			"Use double forward slash: '//'",
-			"Use double backslash: '\\\\'",
-			"Use single backslash: '\\'"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "Type '\\\\' in your code (two backslashes) to get one backslash in the string. The first escapes the second."
-	},
-	{
-		"questionText": "Which syntax correctly prints multiple values with spaces between them?",
-		"options": [
-			"print('Name'; 'Age')",
-			"print('Name', 'Age')",
-			"print('Name' 'Age')",
-			"print('Name' + 'Age')"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Separate values with commas: print('Name', 'Age') outputs 'Name Age'. Options 3 concatenates without space, option 4 concatenates strings, option 1 has invalid syntax."
-	},
-	{
-		"questionText": "What output does this code produce?\nprint('Hello', end=\"\")\nprint('World')",
-		"options": [
-			"Error",
-			"Hello on one line, World on next line",
-			"HelloWorld with no space",
-			"Hello World on the same line"
-		],
-		"correctAnswerIndex": 2,
-		"explanation": "Using end='' (empty string) removes the default newline, so 'World' appears directly after 'Hello' with no separation."
-	},
-	{
-		"questionText": "Which is NOT a typical way to execute Python code?",
-		"options": [
-			"Interactive Python Shell (REPL)",
-			"Compiling to .exe first using javac",
-			"IDE Run button (like VS Code or PyCharm)",
-			"Command line using 'python filename.py'"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Python doesn't need compilation like Java. While tools exist to create executables, Python code runs directly via the interpreter."
-	},
-	{
-		"questionText": "What is displayed by: print('X', 'Y', 'Z', sep='|')?",
-		"options": ["X, Y, Z", "X|Y|Z", "X Y Z", "XYZ"],
-		"correctAnswerIndex": 1,
-		"explanation": "The sep='|' parameter changes the separator from space to pipe, producing 'X|Y|Z'."
-	},
-	{
-		"questionText": "For Python development in VS Code, which extension is recommended?",
-		"options": [
-			"C/C++ Extension",
-			"Python extension by Microsoft",
-			"Go Extension",
-			"Java Extension Pack"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Microsoft's official Python extension provides IntelliSense, debugging, linting, and other crucial Python development tools."
-	},
-	{
-		"questionText": "What is the purpose of triple quotes (\"\"\" or ''') in Python?",
-		"options": [
-			"For importing modules",
-			"For variable names",
-			"Only for single-line strings",
-			"For multi-line strings and docstrings (documentation)"
-		],
-		"correctAnswerIndex": 3,
-		"explanation": "Triple quotes enable strings spanning multiple lines and are standard for docstrings. Example: \"\"\"Multi-line documentation\"\"\"."
-	},
-	{
-		"questionText": "What makes a comment effective in Python?",
-		"options": [
-			"Never use comments because good code is self-documenting",
-			"Explain WHY the code does something, not WHAT it does",
-			"Use comments instead of meaningful variable names",
-			"Comment every single line of code"
-		],
-		"correctAnswerIndex": 1,
-		"explanation": "Effective comments explain the reasoning (WHY), not obvious mechanics (WHAT). Use clear names for WHAT, comments for WHY."
-	},
-	{
-		"questionText": "What character does the escape sequence \\\" produce?",
-		"options": [
-			"Backslash character",
-			"Tab character",
-			"Single quote character",
-			"Double quote character"
-		],
-		"correctAnswerIndex": 3,
-		"explanation": "\\\" puts a double quote inside double-quoted strings. Example: print(\"She said \\\"Hi\\\"\") outputs: She said \"Hi\""
-	}
+    {
+        "questionText": "In which data structure is the first element added also the first one to be removed?",
+        "options": [
+            "Tree",
+            "Stack",
+            "Queue",
+            "Array"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "A Queue follows FIFO (First In First Out) principle, similar to people waiting in line at a checkout - the first person who arrives is served first."
+    },
+    {
+        "questionText": "Which principle does a Stack data structure follow?",
+        "options": [
+            "LIFO (Last In First Out)",
+            "FIFO (First In First Out)",
+            "Random Access",
+            "Sequential Access"
+        ],
+        "correctAnswerIndex": 0,
+        "explanation": "A Stack follows LIFO principle, like stacking plates - you remove the top plate (most recently added) first."
+    },
+    {
+        "questionText": "What file extension is used for Python programs?",
+        "options": [
+            ".pyt",
+            ".python",
+            ".pt",
+            ".py"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Python programs use the .py extension. This helps the system identify files containing Python code."
+    },
+    {
+        "questionText": "What does the 'sep' parameter do in Python's print() function?",
+        "options": [
+            "Ends the output",
+            "Controls spacing between printed values",
+            "Starts a new line",
+            "Adds indentation"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The &#x27;sep&#x27; parameter determines what appears between values. Example: print(&#x27;X&#x27;, &#x27;Y&#x27;, sep=&#x27;*&#x27;) outputs &#x27;X*Y&#x27;."
+    },
+    {
+        "questionText": "When printing multiple values with print(), what separator is used by default?",
+        "options": [
+            "newline",
+            "tab",
+            "comma",
+            "space"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Python&#x27;s print() function uses a single space as the default separator. Example: print(&#x27;Hi&#x27;, &#x27;there&#x27;) outputs &#x27;Hi there&#x27;."
+    },
+    {
+        "questionText": "Which escape sequence creates a new line in Python?",
+        "options": [
+            "\\b",
+            "\\n",
+            "\\t",
+            "\\r"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "\\n creates a line break. \\t is for tabs, \\r is carriage return, and \\b is backspace."
+    },
+    {
+        "questionText": "By default, what does Python's print() function add at the end of output?",
+        "options": [
+            "tab",
+            "space",
+            "newline",
+            "empty string"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "The default &#x27;end&#x27; parameter is a newline (\\n), which is why consecutive print() statements appear on separate lines unless modified."
+    },
+    {
+        "questionText": "In Python, which character starts a single-line comment?",
+        "options": [
+            "--",
+            "//",
+            "/*",
+            "#"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Python uses # for single-line comments. Text after # is ignored during execution. // is for Java/C++, /* */ for C-style languages."
+    },
+    {
+        "questionText": "How do you insert a tab in a Python string?",
+        "options": [
+            "\\s",
+            "\\n",
+            "\\tab",
+            "\\t"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "\\t creates a tab character (usually 4-8 spaces). \\n creates a new line, while \\s and \\tab aren&#x27;t valid escape sequences."
+    },
+    {
+        "questionText": "How can you verify which Python version is installed on your system?",
+        "options": [
+            "check python",
+            "python -check",
+            "python -v",
+            "python --version"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Running &#x27;python --version&#x27; or &#x27;python -V&#x27; in your terminal shows the installed Python version number."
+    },
+    {
+        "questionText": "Which types of quotation marks are valid for strings in Python?",
+        "options": [
+            "Only backticks",
+            "Both single and double quotes",
+            "Only double quotes",
+            "Only single quotes"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Python allows both single quotes (&#x27;text&#x27;) and double quotes (&quot;text&quot;) for strings. Choose based on convenience and what&#x27;s inside the string."
+    },
+    {
+        "questionText": "How do you represent a single backslash in a Python string?",
+        "options": [
+            "Use forward slash: '/'",
+            "Use double forward slash: '//'",
+            "Use double backslash: '\\\\'",
+            "Use single backslash: '\\'"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "Type &#x27;\\\\&#x27; in your code (two backslashes) to get one backslash in the string. The first escapes the second."
+    },
+    {
+        "questionText": "Which syntax correctly prints multiple values with spaces between them?",
+        "options": [
+            "print('Name'; 'Age')",
+            "print('Name', 'Age')",
+            "print('Name' 'Age')",
+            "print('Name' + 'Age')"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Separate values with commas: print(&#x27;Name&#x27;, &#x27;Age&#x27;) outputs &#x27;Name Age&#x27;. Options 3 concatenates without space, option 4 concatenates strings, option 1 has invalid syntax."
+    },
+    {
+        "questionText": "What output does this code produce?\nprint('Hello', end=\"\")\nprint('World')",
+        "options": [
+            "Error",
+            "Hello on one line, World on next line",
+            "HelloWorld with no space",
+            "Hello World on the same line"
+        ],
+        "correctAnswerIndex": 2,
+        "explanation": "Using end=&#x27;&#x27; (empty string) removes the default newline, so &#x27;World&#x27; appears directly after &#x27;Hello&#x27; with no separation."
+    },
+    {
+        "questionText": "Which is NOT a typical way to execute Python code?",
+        "options": [
+            "Interactive Python Shell (REPL)",
+            "Compiling to .exe first using javac",
+            "IDE Run button (like VS Code or PyCharm)",
+            "Command line using 'python filename.py'"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Python doesn&#x27;t need compilation like Java. While tools exist to create executables, Python code runs directly via the interpreter."
+    },
+    {
+        "questionText": "What is displayed by: print('X', 'Y', 'Z', sep='|')?",
+        "options": [
+            "X, Y, Z",
+            "X|Y|Z",
+            "X Y Z",
+            "XYZ"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "The sep=&#x27;|&#x27; parameter changes the separator from space to pipe, producing &#x27;X|Y|Z&#x27;."
+    },
+    {
+        "questionText": "For Python development in VS Code, which extension is recommended?",
+        "options": [
+            "C/C++ Extension",
+            "Python extension by Microsoft",
+            "Go Extension",
+            "Java Extension Pack"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Microsoft&#x27;s official Python extension provides IntelliSense, debugging, linting, and other crucial Python development tools."
+    },
+    {
+        "questionText": "What is the purpose of triple quotes (\"\"\" or ''') in Python?",
+        "options": [
+            "For importing modules",
+            "For variable names",
+            "Only for single-line strings",
+            "For multi-line strings and docstrings (documentation)"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "Triple quotes enable strings spanning multiple lines and are standard for docstrings. Example: &quot;&quot;&quot;Multi-line documentation&quot;&quot;&quot;."
+    },
+    {
+        "questionText": "What makes a comment effective in Python?",
+        "options": [
+            "Never use comments because good code is self-documenting",
+            "Explain WHY the code does something, not WHAT it does",
+            "Use comments instead of meaningful variable names",
+            "Comment every single line of code"
+        ],
+        "correctAnswerIndex": 1,
+        "explanation": "Effective comments explain the reasoning (WHY), not obvious mechanics (WHAT). Use clear names for WHAT, comments for WHY."
+    },
+    {
+        "questionText": "What character does the escape sequence \\\" produce?",
+        "options": [
+            "Backslash character",
+            "Tab character",
+            "Single quote character",
+            "Double quote character"
+        ],
+        "correctAnswerIndex": 3,
+        "explanation": "\\&quot; puts a double quote inside double-quoted strings. Example: print(&quot;She said \\&quot;Hi\\&quot;&quot;) outputs: She said &quot;Hi&quot;"
+    }
 ]
