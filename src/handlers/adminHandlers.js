@@ -124,7 +124,6 @@ export const setActiveQuiz = (req, res, quizId) => {
 			return;
 		}
 
-		// Deactivate all quizzes
 		deactivateAllQuizzes();
 
 		// Activate selected quiz
@@ -152,7 +151,8 @@ export const getAllQuestionsAdmin = (req, res) => {
 export const createQuestion = async (req, res) => {
 	try {
 		const data = await parseBody(req);
-		const { quizId, questionText, options, correctAnswerIndex } = data;
+		const { quizId, questionText, options, correctAnswerIndex, explanation } =
+			data;
 
 		// Validate required fields
 		if (
@@ -175,7 +175,8 @@ export const createQuestion = async (req, res) => {
 			quizId,
 			questionText,
 			options,
-			correctAnswerIndex
+			correctAnswerIndex,
+			explanation || null
 		);
 
 		sendJSON(res, 201, {
@@ -198,7 +199,8 @@ export const createQuestion = async (req, res) => {
 export const updateQuestion = async (req, res, questionId) => {
 	try {
 		const data = await parseBody(req);
-		const { quizId, questionText, options, correctAnswerIndex } = data;
+		const { quizId, questionText, options, correctAnswerIndex, explanation } =
+			data;
 
 		// Validate required fields
 		if (
@@ -222,7 +224,8 @@ export const updateQuestion = async (req, res, questionId) => {
 			quizId,
 			questionText,
 			options,
-			correctAnswerIndex
+			correctAnswerIndex,
+			explanation || null
 		);
 
 		sendJSON(res, 200, { message: "Question updated successfully" });

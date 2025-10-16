@@ -182,8 +182,13 @@ function renderDetailedResults(detailedResults, studentName) {
 			answerSection.appendChild(answerRow);
 		});
 
-		// Add explanation for unanswered
-		if (result.selectedAnswer === null) {
+		if (result.explanation) {
+			const explanationDiv = document.createElement("div");
+			explanationDiv.className = "explanation";
+			explanationDiv.innerHTML = `<strong> Explanation:</strong> ${result.explanation}`;
+			answerSection.appendChild(explanationDiv);
+		} else if (result.selectedAnswer === null) {
+			// Keep existing unanswered message
 			const explanation = document.createElement("div");
 			explanation.className = "explanation";
 			explanation.textContent = "You did not answer this question.";

@@ -25,6 +25,7 @@ export const calculateScore = (answers, questions) => {
 			selectedAnswer: selectedIndex,
 			correctAnswer: question.correctAnswerIndex,
 			isCorrect: isCorrect,
+			explanation: question.explanation || null,
 		};
 	});
 

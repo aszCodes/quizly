@@ -34,6 +34,7 @@ const initDB = () => {
       questionText TEXT NOT NULL,
       options TEXT NOT NULL,
       correctAnswerIndex INTEGER NOT NULL,
+      explanation TEXT,
       createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (quizId) REFERENCES quizzes(id) ON DELETE CASCADE
     )

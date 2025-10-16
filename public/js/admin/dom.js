@@ -37,6 +37,7 @@ export const elements = {
 	questionId: document.getElementById("question-id"),
 	questionQuizId: document.getElementById("question-quiz-id"),
 	questionText: document.getElementById("question-text"),
+	questionExplanation: document.getElementById("question-explanation"),
 	optionsContainer: document.getElementById("options-container"),
 	addOptionBtn: document.getElementById("add-option-btn"),
 

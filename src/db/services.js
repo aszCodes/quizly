@@ -106,18 +106,20 @@ export const createQuestionService = (
 	quizId,
 	questionText,
 	options,
-	correctAnswerIndex
+	correctAnswerIndex,
+	explanation = null
 ) => {
 	const stmt = db.prepare(`
-		INSERT INTO questions (quizId, questionText, options, correctAnswerIndex)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO questions (quizId, questionText, options, correctAnswerIndex, explanation)
+		VALUES (?, ?, ?, ?, ?)
 	`);
 
 	return stmt.run(
 		quizId,
 		questionText,
 		JSON.stringify(options),
-		correctAnswerIndex
+		correctAnswerIndex,
+		explanation
 	);
 };
 
@@ -126,11 +128,12 @@ export const updateQuestionService = (
 	quizId,
 	questionText,
 	options,
-	correctAnswerIndex
+	correctAnswerIndex,
+	explanation = null
 ) => {
 	const stmt = db.prepare(`
 		UPDATE questions
-		SET quizId = ?, questionText = ?, options = ?, correctAnswerIndex = ?
+		SET quizId = ?, questionText = ?, options = ?, correctAnswerIndex = ?, explanation = ?
 		WHERE id = ?
 	`);
 
@@ -139,6 +142,7 @@ export const updateQuestionService = (
 		questionText,
 		JSON.stringify(options),
 		correctAnswerIndex,
+		explanation,
 		questionId
 	);
 };
@@ -150,8 +154,8 @@ export const deleteQuestionService = (questionId) => {
 
 export const importQuestionsService = (quizId, questions) => {
 	const stmt = db.prepare(`
-		INSERT INTO questions (quizId, questionText, options, correctAnswerIndex)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO questions (quizId, questionText, options, correctAnswerIndex, explanation)
+		VALUES (?, ?, ?, ?, ?)
 	`);
 
 	const insertMany = db.transaction((questions) => {
@@ -160,7 +164,8 @@ export const importQuestionsService = (quizId, questions) => {
 				quizId,
 				q.questionText,
 				JSON.stringify(q.options),
-				q.correctAnswerIndex
+				q.correctAnswerIndex,
+				q.explanation || null
 			);
 		}
 	});

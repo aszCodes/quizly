@@ -93,6 +93,7 @@ export function openEditQuestionModal(questionId) {
 	elements.questionId.value = question.id;
 	elements.questionQuizId.value = question.quizId;
 	elements.questionText.value = question.questionText;
+	elements.questionExplanation.value = question.explanation || "";
 
 	clearOptionsContainer();
 	question.options.forEach((opt, idx) => {
@@ -108,6 +109,7 @@ export async function handleQuestionFormSubmit(e) {
 	const questionId = elements.questionId.value;
 	const quizId = elements.questionQuizId.value;
 	const questionText = elements.questionText.value;
+	const explanation = elements.questionExplanation.value.trim();
 
 	const optionInputs = document.querySelectorAll(
 		'#options-container input[type="text"]'
@@ -122,6 +124,7 @@ export async function handleQuestionFormSubmit(e) {
 		questionText,
 		options,
 		correctAnswerIndex,
+		explanation: explanation || null,
 	};
 
 	try {
@@ -209,6 +212,7 @@ function validateImportData(data) {
 			typeof q.correctAnswerIndex === "number" &&
 			q.correctAnswerIndex >= 0 &&
 			q.correctAnswerIndex < q.options.length
+		// Note: explanation is optional
 	);
 }
 
