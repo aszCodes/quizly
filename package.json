@@ -5,7 +5,7 @@
 	"main": "app.js",
 	"type": "module",
 	"scripts": {
-		"dev": "node --watch --env-file=.env server.js",
+		"dev": "node --watch --env-file=.env express/index.js",
 		"test": "node test.js",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix"
@@ -24,6 +24,8 @@
 		"eslint": "^9.37.0"
 	},
 	"dependencies": {
-		"better-sqlite3": "^12.4.1"
+		"better-sqlite3": "^12.4.1",
+		"ejs": "^3.1.10",
+		"express": "^5.1.0"
 	}
 }
