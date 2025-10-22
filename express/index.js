@@ -1,6 +1,9 @@
 import express from "express";
 import path from "node:path";
-import getHome from "./controllers/index.js";
+import notFound from "./middlewares/notFound.js";
+import { getHome } from "./controllers/index.js";
+import getQuestions from "./controllers/api/questions.js";
+import getAttempts from "./controllers/api/attempts.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -20,11 +23,17 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
 app.get("/", getHome);
+app.get("/admin", () => {});
 
-// Assume 404 since no middleware responded
-app.use((req, res, next) => {
-	res.status(404).render("404", { url: req.originalUrl });
-});
+// Api Routes
+app.get("/api/questions", getQuestions);
+app.get("/api/attempts", getAttempts);
+
+app.post("/api/submit", () => {});
+app.post("/admin/question", () => {});
+
+// 404 handler
+app.use(notFound);
 
 app.listen(PORT, HOST, () => {
 	console.log(`running on http://${HOST}:${PORT}`);
