@@ -97,8 +97,6 @@ export function getSingleQuestionLeaderboard(question_id) {
 		.all(question_id);
 }
 
-// ============= QUIZ ATTEMPTS =============
-
 /**
  * Creates a quiz attempt
  * @param {number} student_id

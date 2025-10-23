@@ -1,12 +1,12 @@
 import { fetchSingleQuestionLeaderboard } from "../../db/queries/attempts.js";
 
 /**
- * GET /api/leaderboard - Get single question attempts
+ * GET /api/leaderboard - Get single question leaderboard
  */
-export default function getSingleAttempts(req, res, next) {
+export default function getSingleLeaderboard(req, res, next) {
 	try {
-		const attempts = fetchSingleQuestionLeaderboard();
-		res.json(attempts);
+		const leaderboard = fetchSingleQuestionLeaderboard();
+		res.json(leaderboard);
 	} catch (error) {
 		next(error);
 	}

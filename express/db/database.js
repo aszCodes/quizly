@@ -2,9 +2,7 @@ import Database from "better-sqlite3";
 import path from "node:path";
 
 const __dirname = path.dirname(import.meta.filename);
-const db = new Database(path.join(__dirname, "quiz.db"), {
-	verbose: console.log,
-});
+const db = new Database(path.join(__dirname, "quiz.db"));
 
 // Enable foreign keys
 db.pragma("foreign_keys = ON");
