@@ -50,7 +50,7 @@ export function getQuestionById(question_id) {
  * @param {number} quiz_id
  * @returns {Question[]}
  */
-export function getQuizQuestions(quiz_id) {
+export function fetchQuizQuestions(quiz_id) {
 	return db
 		.prepare(
 			`

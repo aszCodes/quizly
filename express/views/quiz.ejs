@@ -59,7 +59,7 @@
 			// Load question
 			async function loadQuestion() {
 				try {
-					const response = await fetch("/api/questions");
+					const response = await fetch("/api/question");
 					if (!response.ok)
 						throw new Error("Failed to load question");
 

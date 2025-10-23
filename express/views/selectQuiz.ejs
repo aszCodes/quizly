@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Select Quiz - <%= title %></title>
+		<link rel="stylesheet" href="style.css" />
+		<style>
+			.quiz-selection {
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+			}
+			.quiz-option {
+				background: white;
+				border: 3px solid #44444e;
+				border-radius: 8px;
+				padding: 20px;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.quiz-option:hover {
+				background: #715a5a;
+				color: white;
+				border-color: #715a5a;
+				transform: translateY(-2px);
+			}
+			.quiz-title {
+				font-size: 1.3rem;
+				font-weight: bold;
+				margin-bottom: 5px;
+			}
+			.single-question-card {
+				background: #715a5a;
+				color: white;
+				border-color: #715a5a;
+			}
+			.single-question-card:hover {
+				background: #44444e;
+				border-color: #44444e;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Select a Quiz</h1>
+			<p>Welcome, <strong><%= studentName %></strong>!</p>
+
+			<div class="quiz-selection" id="quizSelection">
+				<!-- Single Question Mode -->
+				<div
+					class="quiz-option single-question-card"
+					onclick="startSingleQuestion()"
+				>
+					<div class="quiz-title">Single Question Mode</div>
+					<div>Answer one quick question</div>
+				</div>
+
+				<!-- Loading state -->
+				<div id="loading">Loading quizzes...</div>
+			</div>
+		</main>
+
+		<script>
+			const studentName = "<%= studentName %>";
+
+			// Start single question mode
+			function startSingleQuestion() {
+				window.location.href = `/quiz?name=${encodeURIComponent(
+					studentName
+				)}`;
+			}
+
+			// Start quiz mode
+			function startQuiz(quizId, quizTitle) {
+				window.location.href = `/quiz/${quizId}?name=${encodeURIComponent(
+					studentName
+				)}`;
+			}
+
+			// Load available quizzes
+			async function loadQuizzes() {
+				try {
+					const response = await fetch("/api/quizzes");
+					if (!response.ok) throw new Error("Failed to load quizzes");
+
+					const quizzes = await response.json();
+					displayQuizzes(quizzes);
+				} catch (error) {
+					console.error("Error loading quizzes:", error);
+					document.getElementById("loading").textContent =
+						"Failed to load quizzes";
+				}
+			}
+
+			// Display quizzes
+			function displayQuizzes(quizzes) {
+				const container = document.getElementById("quizSelection");
+				const loading = document.getElementById("loading");
+				loading.style.display = "none";
+
+				quizzes.forEach(quiz => {
+					const quizCard = document.createElement("div");
+					quizCard.className = "quiz-option";
+					quizCard.onclick = () => startQuiz(quiz.id, quiz.title);
+					quizCard.innerHTML = `
+						<div class="quiz-title">${quiz.title}</div>
+						<div>Multiple questions</div>
+					`;
+					container.appendChild(quizCard);
+				});
+			}
+
+			// Load quizzes on page load
+			loadQuizzes();
+		</script>
+	</body>
+</html>

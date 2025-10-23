@@ -1,7 +1,7 @@
 import { getActiveSingleQuestion } from "../../db/queries/questions.js";
 
 /**
- * GET /api/questions - Get active single question
+ * GET /api/question - Get active single question
  */
 export default function getQuestion(req, res, next) {
 	try {

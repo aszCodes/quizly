@@ -30,9 +30,22 @@ function seed() {
 
 		// Seed single active question (for single question mode)
 		const insertQuestion = db.prepare(
-			"INSERT INTO questions (question_text, correct_answer, is_active) VALUES (?, ?, ?)"
+			"INSERT INTO questions (question_text, correct_answer, options, is_active) VALUES (?, ?, ?, ?)"
 		);
-		insertQuestion.run("What is the capital of France?", "Paris", 1);
+
+		const singleQuestionOptions = JSON.stringify([
+			"Paris",
+			"London",
+			"Berlin",
+			"Madrid",
+		]);
+
+		insertQuestion.run(
+			"What is the capital of France?",
+			"Paris",
+			singleQuestionOptions,
+			1
+		);
 		console.log("Seeded 1 active single question");
 
 		// Seed single question attempts
@@ -65,11 +78,33 @@ function seed() {
 			{
 				text: "What is the largest planet in our solar system?",
 				answer: "Jupiter",
+				options: ["Jupiter", "Saturn", "Neptune", "Uranus"],
 			},
-			{ text: "Who painted the Mona Lisa?", answer: "Leonardo da Vinci" },
-			{ text: "What is the chemical symbol for gold?", answer: "Au" },
-			{ text: "In which year did World War II end?", answer: "1945" },
-			{ text: "What is the smallest prime number?", answer: "2" },
+			{
+				text: "Who painted the Mona Lisa?",
+				answer: "Leonardo da Vinci",
+				options: [
+					"Leonardo da Vinci",
+					"Michelangelo",
+					"Raphael",
+					"Donatello",
+				],
+			},
+			{
+				text: "What is the chemical symbol for gold?",
+				answer: "Au",
+				options: ["Au", "Ag", "Fe", "Cu"],
+			},
+			{
+				text: "In which year did World War II end?",
+				answer: "1945",
+				options: ["1943", "1944", "1945", "1946"],
+			},
+			{
+				text: "What is the smallest prime number?",
+				answer: "2",
+				options: ["1", "2", "3", "5"],
+			},
 		];
 
 		// Quiz 2: Math Quiz
@@ -78,13 +113,30 @@ function seed() {
 		console.log("Created Quiz 2: Math Challenge");
 
 		const mathQuestions = [
-			{ text: "What is 15 × 8?", answer: "120" },
-			{ text: "What is the square root of 144?", answer: "12" },
-			{ text: "What is 25% of 200?", answer: "50" },
-			{ text: "What is 7³ (7 cubed)?", answer: "343" },
+			{
+				text: "What is 15 × 8?",
+				answer: "120",
+				options: ["100", "110", "120", "130"],
+			},
+			{
+				text: "What is the square root of 144?",
+				answer: "12",
+				options: ["10", "11", "12", "13"],
+			},
+			{
+				text: "What is 25% of 200?",
+				answer: "50",
+				options: ["25", "40", "50", "75"],
+			},
+			{
+				text: "What is 7³ (7 cubed)?",
+				answer: "343",
+				options: ["243", "343", "423", "443"],
+			},
 			{
 				text: "What is the value of π (pi) rounded to 2 decimal places?",
 				answer: "3.14",
+				options: ["3.12", "3.14", "3.16", "3.18"],
 			},
 		];
 
@@ -94,19 +146,35 @@ function seed() {
 		console.log("Created Quiz 3: Science Trivia");
 
 		const scienceQuestions = [
-			{ text: "What is the speed of light?", answer: "299,792,458 m/s" },
+			{
+				text: "What is the speed of light?",
+				answer: "299,792,458 m/s",
+				options: [
+					"299,792,458 m/s",
+					"300,000,000 m/s",
+					"186,282 miles/s",
+					"150,000,000 m/s",
+				],
+			},
 			{
 				text: "What is the most abundant gas in Earth's atmosphere?",
 				answer: "Nitrogen",
+				options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
 			},
 			{
 				text: "What is the powerhouse of the cell?",
 				answer: "Mitochondria",
+				options: ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"],
 			},
-			{ text: "What is H2O commonly known as?", answer: "Water" },
+			{
+				text: "What is H2O commonly known as?",
+				answer: "Water",
+				options: ["Hydrogen", "Oxygen", "Water", "Hydrogen Peroxide"],
+			},
 			{
 				text: "How many bones are in the adult human body?",
 				answer: "206",
+				options: ["196", "206", "216", "226"],
 			},
 		];
 
@@ -116,47 +184,86 @@ function seed() {
 		console.log("Created Quiz 4: World Geography (inactive)");
 
 		const geographyQuestions = [
-			{ text: "What is the longest river in the world?", answer: "Nile" },
+			{
+				text: "What is the longest river in the world?",
+				answer: "Nile",
+				options: ["Amazon", "Nile", "Yangtze", "Mississippi"],
+			},
 			{
 				text: "Which continent is the Sahara Desert located in?",
 				answer: "Africa",
+				options: ["Asia", "Africa", "Australia", "South America"],
 			},
 			{
 				text: "What is the smallest country in the world?",
 				answer: "Vatican City",
+				options: [
+					"Monaco",
+					"Vatican City",
+					"San Marino",
+					"Liechtenstein",
+				],
 			},
-			{ text: "How many continents are there?", answer: "7" },
+			{
+				text: "How many continents are there?",
+				answer: "7",
+				options: ["5", "6", "7", "8"],
+			},
 			{
 				text: "What is the tallest mountain in the world?",
 				answer: "Mount Everest",
+				options: [
+					"K2",
+					"Mount Everest",
+					"Kangchenjunga",
+					"Mount Kilimanjaro",
+				],
 			},
 		];
 
 		// Insert all quiz questions
 		const insertQuizQuestion = db.prepare(
-			"INSERT INTO questions (question_text, correct_answer, quiz_id) VALUES (?, ?, ?)"
+			"INSERT INTO questions (question_text, correct_answer, options, quiz_id) VALUES (?, ?, ?, ?)"
 		);
-
-		let questionId = 2; // Start from 2 (1 is the single question)
 
 		// Insert Quiz 1 questions
 		generalKnowledgeQuestions.forEach(q => {
-			insertQuizQuestion.run(q.text, q.answer, quiz1Id);
+			insertQuizQuestion.run(
+				q.text,
+				q.answer,
+				JSON.stringify(q.options),
+				quiz1Id
+			);
 		});
 
 		// Insert Quiz 2 questions
 		mathQuestions.forEach(q => {
-			insertQuizQuestion.run(q.text, q.answer, quiz2Id);
+			insertQuizQuestion.run(
+				q.text,
+				q.answer,
+				JSON.stringify(q.options),
+				quiz2Id
+			);
 		});
 
 		// Insert Quiz 3 questions
 		scienceQuestions.forEach(q => {
-			insertQuizQuestion.run(q.text, q.answer, quiz3Id);
+			insertQuizQuestion.run(
+				q.text,
+				q.answer,
+				JSON.stringify(q.options),
+				quiz3Id
+			);
 		});
 
 		// Insert Quiz 4 questions
 		geographyQuestions.forEach(q => {
-			insertQuizQuestion.run(q.text, q.answer, quiz4Id);
+			insertQuizQuestion.run(
+				q.text,
+				q.answer,
+				JSON.stringify(q.options),
+				quiz4Id
+			);
 		});
 
 		console.log("Seeded all quiz questions");
@@ -213,13 +320,18 @@ function seed() {
 		console.log("=".repeat(50));
 		console.log("\n📊 Summary:");
 		console.log(`  • ${students.length} students`);
-		console.log(`  • 1 active single question`);
+		console.log(
+			`  • 1 active single question with multiple choice options`
+		);
 		console.log(`  • 4 quizzes (3 active, 1 inactive)`);
-		console.log(`  • 20 quiz questions total`);
+		console.log(
+			`  • 20 quiz questions total (all with multiple choice options)`
+		);
 		console.log(`  • Multiple attempts logged`);
 
 		console.log("\n🧪 Test Endpoints:");
-		console.log(`  • GET /api/leaderboard (single question)`);
+		console.log(`  • GET /api/question (single question)`);
+		console.log(`  • GET /api/leaderboard (single question leaderboard)`);
 		console.log(
 			`  • GET /api/quizzes/${quiz1Id}/leaderboard (General Knowledge)`
 		);

@@ -34,6 +34,7 @@ function initDB() {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			question_text TEXT NOT NULL,
 			correct_answer TEXT NOT NULL,
+			options TEXT,
 			quiz_id INTEGER,
 			is_active INTEGER DEFAULT 0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

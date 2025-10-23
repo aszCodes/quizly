@@ -10,7 +10,7 @@
 		<main>
 			<h1><%= title %></h1>
 			<p><%= description %></p>
-			<form id="startForm" action="/quiz" method="GET">
+			<form id="startForm" action="/select-quiz" method="GET">
 				<input
 					type="text"
 					name="name"
@@ -33,7 +33,7 @@
 				.getElementById("startForm")
 				.addEventListener("submit", e => {
 					const nameInput = document.getElementById("nameInput");
-					const name = nameInput.value.trim();
+					const name = nameInput.value.trim().toLowerCase();
 
 					if (name.length < 2) {
 						e.preventDefault();

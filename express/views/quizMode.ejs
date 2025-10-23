@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Quiz - <%= title %></title>
+		<link rel="stylesheet" href="/style.css" />
+		<style>
+			.progress-bar {
+				width: 100%;
+				height: 10px;
+				background: #44444e;
+				border-radius: 5px;
+				margin-bottom: 20px;
+				overflow: hidden;
+			}
+			.progress-fill {
+				height: 100%;
+				background: #715a5a;
+				transition: width 0.3s;
+			}
+			.question-counter {
+				text-align: center;
+				color: #715a5a;
+				margin-bottom: 20px;
+				font-size: 1.1rem;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<div class="error" id="error"></div>
+
+			<div class="question-counter" id="questionCounter">
+				Question 1 of ?
+			</div>
+			<div class="progress-bar">
+				<div
+					class="progress-fill"
+					id="progressFill"
+					style="width: 0%"
+				></div>
+			</div>
+
+			<div class="quiz-header">
+				<div class="student-info">
+					Student:
+					<strong id="studentName"><%= studentName %></strong>
+				</div>
+				<div class="timer" id="timer">0s</div>
+			</div>
+
+			<div class="question-section">
+				<div class="question-text" id="questionText">
+					Loading questions...
+				</div>
+				<div class="options" id="optionsContainer"></div>
+			</div>
+
+			<button class="submit-btn" id="submitBtn" disabled>
+				Select an answer
+			</button>
+			<div class="loading" id="loading">Processing...</div>
+		</main>
+
+		<script>
+			const studentName = "<%= studentName %>";
+			const quizId = parseInt("<%= quizId %>");
+
+			let questions = [];
+			let currentQuestionIndex = 0;
+			let selectedAnswer = null;
+			let startTime = Date.now();
+			let timerInterval;
+			let answers = []; // Store all answers
+
+			// Start timer
+			function startTimer() {
+				timerInterval = setInterval(() => {
+					const elapsed = Math.floor((Date.now() - startTime) / 1000);
+					const timerEl = document.getElementById("timer");
+					timerEl.textContent = elapsed + "s";
+
+					if (elapsed >= 30) {
+						timerEl.classList.add("warning");
+					}
+				}, 1000);
+			}
+
+			// Load all questions for the quiz
+			async function loadQuestions() {
+				try {
+					const response = await fetch(
+						`/api/quizzes/${quizId}/questions`
+					);
+					if (!response.ok)
+						throw new Error("Failed to load questions");
+
+					questions = await response.json();
+					displayQuestion(0);
+					updateProgress();
+					startTimer();
+				} catch (error) {
+					showError(
+						"Failed to load questions. Please refresh the page."
+					);
+					console.error(error);
+				}
+			}
+
+			// Display a specific question
+			function displayQuestion(index) {
+				if (index >= questions.length) {
+					submitAllAnswers();
+					return;
+				}
+
+				const question = questions[index];
+				document.getElementById("questionText").textContent =
+					question.questionText;
+				document.getElementById(
+					"questionCounter"
+				).textContent = `Question ${index + 1} of ${questions.length}`;
+
+				const optionsContainer =
+					document.getElementById("optionsContainer");
+				optionsContainer.innerHTML = "";
+
+				question.options.forEach((option, i) => {
+					const optionEl = document.createElement("div");
+					optionEl.className = "option";
+					optionEl.innerHTML = `
+						<span class="option-label">${String.fromCharCode(65 + i)}</span>
+						<span>${option}</span>
+					`;
+					optionEl.addEventListener("click", () =>
+						selectOption(option, optionEl)
+					);
+					optionsContainer.appendChild(optionEl);
+				});
+
+				selectedAnswer = null;
+				document.getElementById("submitBtn").disabled = true;
+				document.getElementById("submitBtn").textContent =
+					"Select an answer";
+			}
+
+			// Update progress bar
+			function updateProgress() {
+				const progress =
+					(currentQuestionIndex / questions.length) * 100;
+				document.getElementById("progressFill").style.width =
+					progress + "%";
+			}
+
+			// Select option
+			function selectOption(answer, element) {
+				selectedAnswer = answer;
+
+				document.querySelectorAll(".option").forEach(opt => {
+					opt.classList.remove("selected");
+				});
+
+				element.classList.add("selected");
+
+				const submitBtn = document.getElementById("submitBtn");
+				submitBtn.disabled = false;
+				submitBtn.textContent =
+					currentQuestionIndex < questions.length - 1
+						? "Next Question"
+						: "Submit Quiz";
+			}
+
+			// Next question
+			function nextQuestion() {
+				if (!selectedAnswer) return;
+
+				const duration = Math.floor((Date.now() - startTime) / 1000);
+
+				// Store the answer
+				answers.push({
+					questionId: questions[currentQuestionIndex].id,
+					answer: selectedAnswer,
+					duration: duration,
+				});
+
+				currentQuestionIndex++;
+				startTime = Date.now(); // Reset timer for next question
+
+				if (currentQuestionIndex < questions.length) {
+					displayQuestion(currentQuestionIndex);
+					updateProgress();
+				} else {
+					submitAllAnswers();
+				}
+			}
+
+			// Submit all answers
+			async function submitAllAnswers() {
+				clearInterval(timerInterval);
+
+				document.getElementById("submitBtn").style.display = "none";
+				document.getElementById("loading").style.display = "block";
+
+				try {
+					const response = await fetch("/api/submit-quiz", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							studentName: studentName,
+							quizId: quizId,
+							answers: answers,
+						}),
+					});
+
+					if (!response.ok) throw new Error("Failed to submit quiz");
+
+					const result = await response.json();
+					window.location.href = `/quizzes/${quizId}/leaderboard`;
+				} catch (error) {
+					showError("Failed to submit quiz. Please try again.");
+					console.error(error);
+					document.getElementById("submitBtn").style.display =
+						"block";
+					document.getElementById("loading").style.display = "none";
+				}
+			}
+
+			// Show error
+			function showError(message) {
+				const errorEl = document.getElementById("error");
+				errorEl.textContent = message;
+				errorEl.style.display = "block";
+			}
+
+			// Event listeners
+			document
+				.getElementById("submitBtn")
+				.addEventListener("click", nextQuestion);
+
+			// on page load
+			loadQuestions();
+		</script>
+	</body>
+</html>
