@@ -10,8 +10,37 @@
 		<main>
 			<h1><%= title %></h1>
 			<p><%= description %></p>
-			<input type="text" placeholder="Your name" class="student-name" />
-			<button>Start Quiz</button>
+			<form id="startForm" action="/quiz" method="GET">
+				<input
+					type="text"
+					name="name"
+					placeholder="Your name"
+					class="student-name"
+					required
+					minlength="2"
+					id="nameInput"
+				/>
+			</form>
+			<button type="submit" form="startForm">Start Quiz</button>
 		</main>
+
+		<script>
+			// Focus on name input when page loads
+			document.getElementById("nameInput").focus();
+
+			// Handle form submission
+			document
+				.getElementById("startForm")
+				.addEventListener("submit", e => {
+					const nameInput = document.getElementById("nameInput");
+					const name = nameInput.value.trim();
+
+					if (name.length < 2) {
+						e.preventDefault();
+						alert("Please enter your name (at least 2 characters)");
+						nameInput.focus();
+					}
+				});
+		</script>
 	</body>
 </html>

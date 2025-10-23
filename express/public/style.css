@@ -59,3 +59,85 @@ p {
 	font-size: 1.1rem;
 	color: #715a5a;
 }
+
+.quiz-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 30px;
+}
+.student-info {
+	font-size: 1.1rem;
+	color: #715a5a;
+}
+.timer {
+	font-size: 2rem;
+	font-weight: bold;
+	color: #715a5a;
+	min-width: 100px;
+	text-align: right;
+}
+.timer.warning {
+	color: #d32f2f;
+}
+.question-section {
+	margin-bottom: 40px;
+}
+.question-text {
+	font-size: 1.5rem;
+	font-weight: bold;
+	margin-bottom: 30px;
+	color: #37353e;
+}
+.options {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+.option {
+	background: white;
+	border: 3px solid #44444e;
+	border-radius: 8px;
+	padding: 20px;
+	font-size: 1.1rem;
+	cursor: pointer;
+	transition: all 0.2s;
+	display: flex;
+	align-items: center;
+}
+.option.selected {
+	background: #715a5a;
+	color: white;
+	border-color: #715a5a;
+}
+.option-label {
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #44444e;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 15px;
+	font-weight: bold;
+}
+.option.selected .option-label {
+	background: white;
+	color: #715a5a;
+}
+.loading {
+	display: none;
+	text-align: center;
+	font-size: 1.2rem;
+	color: #715a5a;
+}
+.error {
+	background: #d32f2f;
+	color: white;
+	padding: 15px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	display: none;
+}

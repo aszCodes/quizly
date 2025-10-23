@@ -3,6 +3,7 @@ import path from "node:path";
 import notFound from "./middlewares/notFoundHandler.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { getHome } from "./controllers/index.js";
+import { getQuiz } from "./controllers/quiz.js";
 import getQuestions from "./controllers/api/questions.js";
 import getSingleLeaderboard from "./controllers/api/singleLeaderboard.js";
 import getQuizLeaderboard from "./controllers/api/quizLeaderboard.js";
@@ -23,8 +24,12 @@ app.set("views", path.join(__dirname, "views"));
 // Set static files
 app.use(express.static(path.join(__dirname, "public")));
 
+// Parse JSON bodies
+app.use(express.json());
+
 // Routes
 app.get("/", getHome);
+app.get("/quiz", getQuiz);
 app.get("/admin", () => {});
 
 // Api Routes
