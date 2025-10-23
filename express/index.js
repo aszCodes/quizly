@@ -4,7 +4,8 @@ import notFound from "./middlewares/notFoundHandler.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { getHome } from "./controllers/index.js";
 import getQuestions from "./controllers/api/questions.js";
-import getAllAttempts from "./controllers/api/attempts.js";
+import getSingleLeaderboard from "./controllers/api/singleLeaderboard.js";
+import getQuizLeaderboard from "./controllers/api/quizLeaderboard.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -28,7 +29,8 @@ app.get("/admin", () => {});
 
 // Api Routes
 app.get("/api/questions", getQuestions);
-app.get("/api/attempts", getAllAttempts);
+app.get("/api/leaderboard", getSingleLeaderboard);
+app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
 
 app.post("/api/submit", () => {});
 app.post("/admin/question", () => {});

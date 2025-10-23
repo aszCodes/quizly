@@ -20,14 +20,26 @@ function initDB() {
 		)
 	`);
 
+	// Quizzes table
+	db.exec(`
+		CREATE TABLE IF NOT EXISTS quizzes (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title TEXT NOT NULL,
+			is_active INTEGER DEFAULT 0,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`);
+
 	// Questions table
 	db.exec(`
 		CREATE TABLE IF NOT EXISTS questions (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			question_text TEXT NOT NULL,
 			correct_answer TEXT NOT NULL,
+			quiz_id INTEGER,
 			is_active INTEGER DEFAULT 0,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
 		)
 	`);
 
@@ -37,12 +49,14 @@ function initDB() {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			student_id INTEGER NOT NULL,
 			question_id INTEGER NOT NULL,
+			quiz_id INTEGER,
 			student_answer TEXT NOT NULL,
 			score REAL NOT NULL,
 			duration INTEGER NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (student_id) REFERENCES students(id),
-			FOREIGN KEY (question_id) REFERENCES questions(id)
+			FOREIGN KEY (question_id) REFERENCES questions(id),
+			FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
 		)
 	`);
 
