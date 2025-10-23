@@ -1,11 +1,10 @@
-const sampleAttempts = {
-	id: 1,
-	studentName: "Miller",
-	answers: [0, 1, 2, 0, 1],
-	score: 4,
-	duration: 120,
-};
+import { fetchAllAttempts } from "../../db/queries/attempts.js";
 
-export default function getAttempts(req, res) {
-	res.json(sampleAttempts);
+export default function getAllAttempts(req, res, next) {
+	try {
+		const attempts = fetchAllAttempts();
+		res.json(attempts);
+	} catch (error) {
+		next(error);
+	}
 }
