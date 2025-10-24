@@ -45,7 +45,9 @@ export function submitSingleAnswer(req, res, next) {
 		const student = findOrCreateStudent(studentName.trim());
 
 		// Calculate score
-		const isCorrect = answer.trim() === question.correct_answer.trim();
+		const isCorrect =
+			answer.trim().toLowerCase() ===
+			question.correct_answer.trim().toLowerCase();
 		const score = isCorrect ? 10 : 0;
 
 		// Save attempt
@@ -107,7 +109,9 @@ export function submitQuizAnswers(req, res, next) {
 				continue;
 			}
 
-			const isCorrect = answer.trim() === question.correct_answer.trim();
+			const isCorrect =
+				answer.trim().toLowerCase() ===
+				question.correct_answer.trim().toLowerCase();
 			const score = isCorrect ? 10 : 0;
 			totalScore += score;
 

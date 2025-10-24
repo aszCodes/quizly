@@ -76,6 +76,7 @@
 
 			// Start timer
 			function startTimer() {
+				if (timerInterval) clearInterval(timerInterval);
 				timerInterval = setInterval(() => {
 					const elapsed = Math.floor((Date.now() - startTime) / 1000);
 					const timerEl = document.getElementById("timer");
@@ -95,6 +96,11 @@
 					);
 					if (!response.ok)
 						throw new Error("Failed to load questions");
+
+					if (!questions || questions.length === 0) {
+						showError("This quiz has no questions.");
+						return;
+					}
 
 					questions = await response.json();
 					displayQuestion(0);
@@ -174,6 +180,9 @@
 			// Next question
 			function nextQuestion() {
 				if (!selectedAnswer) return;
+
+				// Disable button to prevent double-clicks
+				document.getElementById("submitBtn").disabled = true;
 
 				const duration = Math.floor((Date.now() - startTime) / 1000);
 

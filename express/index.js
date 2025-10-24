@@ -39,6 +39,13 @@ app.use(express.json());
 app.get("/", getHome);
 app.get("/quiz", getQuiz);
 app.get("/select-quiz", selectQuiz);
+app.get("/leaderboard", (req, res) => {
+	res.render("leaderboard", { title: "Leaderboard" });
+});
+app.get("/quizzes/:id/leaderboard", (req, res) => {
+	const quizId = parseInt(req.params.id, 10);
+	res.render("quizLeaderboard", { title: "Quiz Leaderboard", quizId });
+});
 
 app.get("/quiz/:id", (req, res) => {
 	const studentName = req.query.name || "Guest";
