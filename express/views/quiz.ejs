@@ -197,6 +197,7 @@
 
 			// Show error
 			function showError(message) {
+				if (timerInterval) clearInterval(timerInterval);
 				const errorEl = document.getElementById("error");
 				errorEl.textContent = message;
 				errorEl.style.display = "block";
@@ -209,6 +210,9 @@
 
 			// Cleanup on page unload
 			window.addEventListener("beforeunload", clearTimer);
+			window.addEventListener("beforeunload", () => {
+				if (timerInterval) clearInterval(timerInterval);
+			});
 
 			// Load question on page load
 			loadQuestion();

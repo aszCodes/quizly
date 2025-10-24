@@ -47,28 +47,39 @@ app.get("/quizzes/:id/leaderboard", (req, res) => {
 	res.render("quizLeaderboard", { title: "Quiz Leaderboard", quizId });
 });
 
-app.get("/quiz/:id", (req, res) => {
+app.get("/quiz/:id", async (req, res) => {
 	const studentName = req.query.name || "Guest";
-	const quizId = req.params.id;
+	const quizId = parseInt(req.params.id, 10);
 
-	// Validate student name
 	if (!studentName || studentName.trim() === "" || studentName === "Guest") {
 		return res.redirect("/");
 	}
 
-	// Validate quiz ID
-	const parsedQuizId = parseInt(quizId, 10);
-	if (isNaN(parsedQuizId) || parsedQuizId <= 0) {
-		return res.status(400).render("404", {
-			url: req.originalUrl,
-		});
+	if (isNaN(quizId) || quizId <= 0) {
+		return res.status(400).render("404", { url: req.originalUrl });
 	}
 
-	res.render("quizMode", {
-		title: "Quizly",
-		studentName: studentName.trim(),
-		quizId: parsedQuizId,
-	});
+	// Validate quiz
+	try {
+		const { getQuizById } = await import("./db/queries/quizzes.js");
+		const quiz = getQuizById(quizId);
+
+		if (!quiz) {
+			return res.status(404).render("404", { url: req.originalUrl });
+		}
+
+		if (!quiz.is_active) {
+			return res.status(403).send("This quiz is not currently active");
+		}
+
+		res.render("quizMode", {
+			title: "Quizly",
+			studentName: studentName.trim(),
+			quizId: quizId,
+		});
+	} catch (error) {
+		next(error);
+	}
 });
 
 // API Routes - Questions

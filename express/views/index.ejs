@@ -40,6 +40,12 @@
 						alert("Please enter your name (at least 2 characters)");
 						nameInput.focus();
 					}
+
+					if (name.length > 50) {
+						e.preventDefault();
+						alert("Name is too long (max 50 characters)");
+						return;
+					}
 				});
 		</script>
 	</body>

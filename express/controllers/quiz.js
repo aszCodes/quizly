@@ -12,7 +12,7 @@ export function getQuiz(req, res) {
 }
 
 export function selectQuiz(req, res) {
-	const studentName = req.query.name || "Guest";
+	const studentName = (req.query.name || "").trim();
 	if (!studentName || studentName === "Guest") {
 		return res.redirect("/");
 	}

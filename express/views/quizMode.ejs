@@ -72,7 +72,8 @@
 			let selectedAnswer = null;
 			let startTime = Date.now();
 			let timerInterval;
-			let answers = []; // Store all answers
+			let answers = [];
+			let isSubmitting = false;
 
 			// Start timer
 			function startTimer() {
@@ -97,12 +98,12 @@
 					if (!response.ok)
 						throw new Error("Failed to load questions");
 
+					questions = await response.json();
+
 					if (!questions || questions.length === 0) {
 						showError("This quiz has no questions.");
 						return;
 					}
-
-					questions = await response.json();
 					displayQuestion(0);
 					updateProgress();
 					startTimer();
@@ -179,9 +180,10 @@
 
 			// Next question
 			function nextQuestion() {
-				if (!selectedAnswer) return;
+				if (!selectedAnswer || isSubmitting) return;
 
 				// Disable button to prevent double-clicks
+				isSubmitting = true;
 				document.getElementById("submitBtn").disabled = true;
 
 				const duration = Math.floor((Date.now() - startTime) / 1000);
@@ -199,6 +201,7 @@
 				if (currentQuestionIndex < questions.length) {
 					displayQuestion(currentQuestionIndex);
 					updateProgress();
+					isSubmitting = false;
 				} else {
 					submitAllAnswers();
 				}
