@@ -36,22 +36,36 @@
 		</main>
 
 		<script>
+			const TIMER_WARNING_SECONDS = 30;
 			const studentName = "<%= studentName %>";
+
 			let selectedAnswer = null;
 			let startTime = Date.now();
-			let timerInterval;
+			let timerInterval = null;
 			let currentQuestion = null;
+
+			// Clear any existing timer interval
+			function clearTimer() {
+				if (timerInterval) {
+					clearInterval(timerInterval);
+					timerInterval = null;
+				}
+			}
 
 			// Start timer
 			function startTimer() {
+				clearTimer();
+
 				timerInterval = setInterval(() => {
 					const elapsed = Math.floor((Date.now() - startTime) / 1000);
 					const timerEl = document.getElementById("timer");
 					timerEl.textContent = elapsed + "s";
 
-					// Warning color after 30 seconds
-					if (elapsed >= 30) {
+					// Warning color after threshold
+					if (elapsed >= TIMER_WARNING_SECONDS) {
 						timerEl.classList.add("warning");
+					} else {
+						timerEl.classList.remove("warning");
 					}
 				}, 1000);
 			}
@@ -60,17 +74,25 @@
 			async function loadQuestion() {
 				try {
 					const response = await fetch("/api/question");
-					if (!response.ok)
-						throw new Error("Failed to load question");
+					if (!response.ok) {
+						throw new Error(
+							`HTTP ${response.status}: ${response.statusText}`
+						);
+					}
 
 					currentQuestion = await response.json();
+
+					if (!currentQuestion || !currentQuestion.id) {
+						throw new Error("Invalid question data received");
+					}
+
 					displayQuestion(currentQuestion);
 					startTimer();
 				} catch (error) {
 					showError(
 						"Failed to load question. Please refresh the page."
 					);
-					console.error(error);
+					console.error("Load question error:", error);
 				}
 			}
 
@@ -82,6 +104,14 @@
 				const optionsContainer =
 					document.getElementById("optionsContainer");
 				optionsContainer.innerHTML = "";
+
+				if (
+					!Array.isArray(question.options) ||
+					question.options.length === 0
+				) {
+					showError("Question has no options");
+					return;
+				}
 
 				question.options.forEach((option, index) => {
 					const optionEl = document.createElement("div");
@@ -104,12 +134,12 @@
 			function selectOption(answer, element) {
 				selectedAnswer = answer;
 
-				// Remove selected class from all options
+				// Remove selected class
 				document.querySelectorAll(".option").forEach(opt => {
 					opt.classList.remove("selected");
 				});
 
-				// Add selected class to clicked option
+				// Add selected class
 				element.classList.add("selected");
 
 				// Enable submit button
@@ -120,9 +150,9 @@
 
 			// Submit answer
 			async function submitAnswer() {
-				if (!selectedAnswer) return;
+				if (!selectedAnswer || !currentQuestion) return;
 
-				clearInterval(timerInterval);
+				clearTimer();
 				const duration = Math.floor((Date.now() - startTime) / 1000);
 
 				// Show loading
@@ -137,14 +167,17 @@
 						},
 						body: JSON.stringify({
 							studentName: studentName,
-							questionId: currentQuestion.id || 1,
+							questionId: currentQuestion.id,
 							answer: selectedAnswer,
 							duration: duration,
 						}),
 					});
 
-					if (!response.ok)
-						throw new Error("Failed to submit answer");
+					if (!response.ok) {
+						throw new Error(
+							`HTTP ${response.status}: ${response.statusText}`
+						);
+					}
 
 					const result = await response.json();
 
@@ -152,7 +185,9 @@
 					window.location.href = "/leaderboard";
 				} catch (error) {
 					showError("Failed to submit answer. Please try again.");
-					console.error(error);
+					console.error("Submit error:", error);
+
+					// Restore UI
 					document.getElementById("submitBtn").style.display =
 						"block";
 					document.getElementById("loading").style.display = "none";
@@ -172,24 +207,8 @@
 				.getElementById("submitBtn")
 				.addEventListener("click", submitAnswer);
 
-			// Keyboard shortcuts
-			document.addEventListener("keydown", e => {
-				const key = e.key.toUpperCase();
-				const options = document.querySelectorAll(".option");
-
-				// A, B, C, D keys
-				if (key >= "A" && key <= "D") {
-					const index = key.charCodeAt(0) - 65;
-					if (options[index]) {
-						options[index].click();
-					}
-				}
-
-				// Enter to submit
-				if (e.key === "Enter" && selectedAnswer) {
-					submitAnswer();
-				}
-			});
+			// Cleanup on page unload
+			window.addEventListener("beforeunload", clearTimer);
 
 			// Load question on page load
 			loadQuestion();

@@ -11,6 +11,10 @@ import {
 	getActiveQuizzes,
 	getQuizQuestions,
 } from "./controllers/api/quiz.js";
+import {
+	submitSingleAnswer,
+	submitQuizAnswers,
+} from "./controllers/api/submit.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -31,40 +35,53 @@ app.use(express.static(path.join(__dirname, "public")));
 // Parse JSON bodies
 app.use(express.json());
 
-// Routes
+// View Routes
 app.get("/", getHome);
 app.get("/quiz", getQuiz);
 app.get("/select-quiz", selectQuiz);
-app.get("/admin", () => {});
-
-// Api Routes
-app.get("/api/question", getQuestion);
-app.get("/api/leaderboard", getSingleLeaderboard);
-app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
-
-app.post("/api/submit", () => {});
-app.post("/admin/question", () => {});
 
 app.get("/quiz/:id", (req, res) => {
 	const studentName = req.query.name || "Guest";
 	const quizId = req.params.id;
 
-	if (!studentName || studentName === "Guest") {
+	// Validate student name
+	if (!studentName || studentName.trim() === "" || studentName === "Guest") {
 		return res.redirect("/");
+	}
+
+	// Validate quiz ID
+	const parsedQuizId = parseInt(quizId, 10);
+	if (isNaN(parsedQuizId) || parsedQuizId <= 0) {
+		return res.status(400).render("404", {
+			url: req.originalUrl,
+		});
 	}
 
 	res.render("quizMode", {
 		title: "Quizly",
-		studentName: studentName,
-		quizId: quizId,
+		studentName: studentName.trim(),
+		quizId: parsedQuizId,
 	});
 });
 
-// API routes
+// API Routes - Questions
+app.get("/api/question", getQuestion);
 app.get("/api/quizzes", getActiveQuizzes);
 app.get("/api/quizzes/:id/questions", getQuizQuestions);
 
-// Handlers
+// API Routes - Submissions
+app.post("/api/submit", submitSingleAnswer);
+app.post("/api/submit-quiz", submitQuizAnswers);
+
+// API Routes - Leaderboards
+app.get("/api/leaderboard", getSingleLeaderboard);
+app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
+
+// Future routes
+// app.get("/admin", adminController);
+// app.post("/admin/question", createQuestionController);
+
+// Error Handlers
 app.use(notFound);
 app.use(errorHandler);
 
