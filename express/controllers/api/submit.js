@@ -1,5 +1,5 @@
 import { findOrCreateStudent } from "../../db/queries/students.js";
-import { getQuestionById } from "../../db/queries/questions.js";
+import { fetchQuestionById } from "../../db/queries/questions.js";
 import {
 	createSingleAttempt,
 	createQuizAttempt,
@@ -34,7 +34,9 @@ export function submitSingleAnswer(req, res, next) {
 		}
 
 		// Get question
-		const question = getQuestionById(questionId);
+		const question = fetchQuestionById(questionId);
+
+		console.log(typeof question.options);
 		if (!question) {
 			return res.status(404).json({
 				error: "Question not found",
@@ -104,7 +106,7 @@ export function submitQuizAnswers(req, res, next) {
 				continue;
 			}
 
-			const question = getQuestionById(questionId);
+			const question = fetchQuestionById(questionId);
 			if (!question) {
 				continue;
 			}
