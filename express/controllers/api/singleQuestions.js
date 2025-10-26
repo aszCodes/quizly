@@ -42,7 +42,7 @@ export const getSingleLeaderboard = (req, res, next) => {
  * @param {object} req.body - { studentName, questionId, answer, duration }
  * @returns {object} - { correct, score, correctAnswer }
  */
-export function submitSingleAnswer(req, res, next) {
+export const submitSingleAnswer = (req, res, next) => {
 	try {
 		const { studentName, questionId, answer, duration } = req.body;
 
@@ -100,4 +100,4 @@ export function submitSingleAnswer(req, res, next) {
 	} catch (error) {
 		next(error);
 	}
-}
+};

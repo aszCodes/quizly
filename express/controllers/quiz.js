@@ -1,4 +1,4 @@
-export function getQuiz(req, res) {
+export const getQuiz = (req, res) => {
 	const studentName = req.query.name || "Guest";
 
 	if (!studentName || studentName === "Guest") {
@@ -9,9 +9,9 @@ export function getQuiz(req, res) {
 		title: "Quizly",
 		studentName: studentName,
 	});
-}
+};
 
-export function selectQuiz(req, res) {
+export const selectQuiz = (req, res) => {
 	const studentName = (req.query.name || "").trim();
 	if (!studentName || studentName === "Guest") {
 		return res.redirect("/");
@@ -20,4 +20,4 @@ export function selectQuiz(req, res) {
 		title: "Quizly",
 		studentName: studentName,
 	});
-}
+};

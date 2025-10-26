@@ -12,7 +12,7 @@ import db from "../database.js";
  * @param {string} name
  * @returns {Student|undefined}
  */
-export function findStudentByName(name) {
+export const findStudentByName = name => {
 	return db
 		.prepare(
 			`
@@ -23,14 +23,14 @@ export function findStudentByName(name) {
 	`
 		)
 		.get(name);
-}
+};
 
 /**
  * Creates a new student
  * @param {string} name
  * @returns {import('better-sqlite3').RunResult}
  */
-export function createStudent(name) {
+export const createStudent = name => {
 	return db
 		.prepare(
 			`
@@ -39,14 +39,14 @@ export function createStudent(name) {
 	`
 		)
 		.run(name);
-}
+};
 
 /**
  * Finds existing student or creates a new one
  * @param {string} name
  * @returns {Student}
  */
-export function findOrCreateStudent(name) {
+export const findOrCreateStudent = name => {
 	const existing = findStudentByName(name);
 	if (existing) {
 		return existing;
@@ -58,4 +58,4 @@ export function findOrCreateStudent(name) {
 		name: name,
 		created_at: new Date().toISOString(),
 	};
-}
+};

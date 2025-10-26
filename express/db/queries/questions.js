@@ -47,19 +47,18 @@ export const parseQuestionOptions = question => {
  * @param {number} question_id
  * @returns {boolean}
  */
-export function hasAttemptedQuestion(student_id, question_id) {
+export const hasAttemptedQuestion = (student_id, question_id) => {
 	const attempt = db
 		.prepare(
 			`
 		SELECT id FROM attempts 
 		WHERE student_id = ? AND question_id = ? AND quiz_id IS NULL
-		LIMIT 1
-	`
+		LIMIT 1`
 		)
 		.get(student_id, question_id);
 
 	return !!attempt;
-}
+};
 
 /**
  * Gets the active single question (not part of a quiz)
@@ -106,28 +105,27 @@ export const fetchQuestionById = question_id => {
  * @param {number} duration
  * @returns {import('better-sqlite3').RunResult}
  */
-export function createSingleAttempt(
+export const createSingleAttempt = (
 	student_id,
 	question_id,
 	student_answer,
 	score,
 	duration
-) {
+) => {
 	return db
 		.prepare(
 			`
 		INSERT INTO attempts (student_id, question_id, student_answer, score, duration)
-		VALUES (?, ?, ?, ?, ?)
-	`
+		VALUES (?, ?, ?, ?, ?)`
 		)
 		.run(student_id, question_id, student_answer, score, duration);
-}
+};
 
 /**
  * Fetches all single question leaderboard (not part of any quiz)
  * @returns {AttemptWithStudent[]}
  */
-export function fetchSingleQuestionLeaderboard() {
+export const fetchSingleQuestionLeaderboard = () => {
 	return db
 		.prepare(
 			`
@@ -141,8 +139,7 @@ export function fetchSingleQuestionLeaderboard() {
 		FROM attempts a
 		JOIN students s ON a.student_id = s.id
 		WHERE a.quiz_id IS NULL
-		ORDER BY a.score DESC, a.duration ASC
-	`
+		ORDER BY a.score DESC, a.duration ASC`
 		)
 		.all();
-}
+};

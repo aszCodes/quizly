@@ -10,19 +10,19 @@ import { findOrCreateStudent } from "../../db/queries/students.js";
 /**
  * GET /api/quizzes - Get all active quizzes
  */
-export function getActiveQuizzes(req, res, next) {
+export const getActiveQuizzes = (req, res, next) => {
 	try {
 		const quizzes = fetchActiveQuizzes();
 		res.json(quizzes);
 	} catch (error) {
 		next(error);
 	}
-}
+};
 
 /**
  * GET /api/quizzes/:id/questions - Get all questions for a quiz
  */
-export function getQuizQuestions(req, res, next) {
+export const getQuizQuestions = (req, res, next) => {
 	try {
 		const quiz_id = Number(req.params.id);
 		const questions = fetchQuizQuestions(quiz_id);
@@ -44,12 +44,12 @@ export function getQuizQuestions(req, res, next) {
 	} catch (error) {
 		next(error);
 	}
-}
+};
 
 /**
  * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
  */
-export function getQuizLeaderboard(req, res, next) {
+export const getQuizLeaderboard = (req, res, next) => {
 	try {
 		const quiz_id = Number(req.params.id);
 		const leaderboard = fetchQuizLeaderboard(quiz_id);
@@ -57,14 +57,14 @@ export function getQuizLeaderboard(req, res, next) {
 	} catch (error) {
 		next(error);
 	}
-}
+};
 
 /**
  * POST /api/submit-quiz - Submit quiz answers
  * @param {object} req.body - { studentName, quizId, answers: [{questionId, answer, duration}] }
  * @returns {object} - { totalScore, results, questionsAnswered }
  */
-export function submitQuizAnswers(req, res, next) {
+export const submitQuizAnswers = (req, res, next) => {
 	try {
 		const { studentName, quizId, answers } = req.body;
 
@@ -153,4 +153,4 @@ export function submitQuizAnswers(req, res, next) {
 	} catch (error) {
 		next(error);
 	}
-}
+};
