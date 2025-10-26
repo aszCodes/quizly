@@ -1,19 +1,11 @@
-import { fetchQuizLeaderboard } from "../../db/queries/attempts.js";
-import { fetchActiveQuizzes } from "../../db/queries/quizzes.js";
-import { fetchQuizQuestions } from "../../db/queries/questions.js";
-
-/**
- * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
- */
-export function getQuizLeaderboard(req, res, next) {
-	try {
-		const quiz_id = Number(req.params.id);
-		const leaderboard = fetchQuizLeaderboard(quiz_id);
-		res.json(leaderboard);
-	} catch (error) {
-		next(error);
-	}
-}
+import {
+	fetchActiveQuizzes,
+	fetchQuizLeaderboard,
+	createQuizAttempt,
+	fetchQuizQuestions,
+	hasAttemptedQuiz,
+} from "../../db/queries/quizzes.js";
+import { findOrCreateStudent } from "../../db/queries/students.js";
 
 /**
  * GET /api/quizzes - Get all active quizzes
@@ -41,14 +33,123 @@ export function getQuizQuestions(req, res, next) {
 			});
 		}
 
-		// Parse options and remove correct answers
+		// Remove correct answers
 		const questionsWithOptions = questions.map(q => ({
 			id: q.id,
-			questionText: q.question_text,
-			options: q.options ? JSON.parse(q.options) : [],
+			question_text: q.question_text,
+			options: q.options,
 		}));
 
 		res.json(questionsWithOptions);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
+ */
+export function getQuizLeaderboard(req, res, next) {
+	try {
+		const quiz_id = Number(req.params.id);
+		const leaderboard = fetchQuizLeaderboard(quiz_id);
+		res.json(leaderboard);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * POST /api/submit-quiz - Submit quiz answers
+ * @param {object} req.body - { studentName, quizId, answers: [{questionId, answer, duration}] }
+ * @returns {object} - { totalScore, results, questionsAnswered }
+ */
+export function submitQuizAnswers(req, res, next) {
+	try {
+		const { studentName, quizId, answers } = req.body;
+
+		// Validation
+		if (
+			!studentName ||
+			!quizId ||
+			!Array.isArray(answers) ||
+			answers.length === 0
+		) {
+			return res.status(400).json({
+				error: "Missing required fields",
+			});
+		}
+
+		if (typeof studentName !== "string" || studentName.trim().length < 2) {
+			return res.status(400).json({
+				error: "Invalid student name",
+			});
+		}
+
+		// Fetch all quiz questions once
+		const quizQuestions = fetchQuizQuestions(quizId);
+
+		if (!quizQuestions || quizQuestions.length === 0) {
+			return res.status(404).json({
+				error: "Quiz not found",
+			});
+		}
+
+		// Create a map for quick lookup
+		const questionsMap = new Map(quizQuestions.map(q => [q.id, q]));
+
+		// Find and check if quiz is attempted
+		const student = findOrCreateStudent(studentName.trim());
+
+		if (hasAttemptedQuiz(student.id, quizId)) {
+			return res.status(400).json({
+				error: "You have already attempted this quiz",
+			});
+		}
+
+		let totalScore = 0;
+		const results = [];
+
+		// Calculate scores
+		for (const ans of answers) {
+			const { questionId, answer, duration } = ans;
+
+			if (!questionId || !answer || duration === undefined) {
+				continue;
+			}
+
+			const question = questionsMap.get(questionId);
+			if (!question) {
+				continue;
+			}
+
+			const isCorrect =
+				answer.trim().toLowerCase() ===
+				question.correct_answer.trim().toLowerCase();
+			const score = isCorrect ? 10 : 0;
+			totalScore += score;
+
+			createQuizAttempt(
+				student.id,
+				quizId,
+				questionId,
+				answer,
+				score,
+				duration
+			);
+
+			results.push({
+				questionId,
+				correct: isCorrect,
+				score,
+			});
+		}
+
+		res.json({
+			total_score: totalScore,
+			results,
+			questions_answered: results.length,
+		});
 	} catch (error) {
 		next(error);
 	}

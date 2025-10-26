@@ -12,11 +12,21 @@ import db from "../database.js";
  */
 
 /**
+ * @typedef {Object} AttemptWithStudent
+ * @property {number} id
+ * @property {string} student_name
+ * @property {string} student_answer
+ * @property {number} score
+ * @property {number} duration
+ * @property {string} created_at
+ */
+
+/**
  * Helper function to parse options JSON
  * @param {Question} question
  * @returns {Question}
  */
-const parseQuestionOptions = question => {
+export const parseQuestionOptions = question => {
 	if (question) {
 		try {
 			question.options = question.options
@@ -30,6 +40,26 @@ const parseQuestionOptions = question => {
 	}
 	return question;
 };
+
+/**
+ * Checks if a student has already attempted a single question
+ * @param {number} student_id
+ * @param {number} question_id
+ * @returns {boolean}
+ */
+export function hasAttemptedQuestion(student_id, question_id) {
+	const attempt = db
+		.prepare(
+			`
+		SELECT id FROM attempts 
+		WHERE student_id = ? AND question_id = ? AND quiz_id IS NULL
+		LIMIT 1
+	`
+		)
+		.get(student_id, question_id);
+
+	return !!attempt;
+}
 
 /**
  * Gets the active single question (not part of a quiz)
@@ -68,20 +98,51 @@ export const fetchQuestionById = question_id => {
 };
 
 /**
- * Gets all questions for a specific quiz
- * @param {number} quiz_id
- * @returns {Question[]}
+ * Creates a single question attempt (not part of a quiz)
+ * @param {number} student_id
+ * @param {number} question_id
+ * @param {string} student_answer
+ * @param {number} score
+ * @param {number} duration
+ * @returns {import('better-sqlite3').RunResult}
  */
-export const fetchQuizQuestions = quiz_id => {
-	const questions = db
+export function createSingleAttempt(
+	student_id,
+	question_id,
+	student_answer,
+	score,
+	duration
+) {
+	return db
 		.prepare(
 			`
-		SELECT id, question_text, correct_answer, options, quiz_id, is_active, created_at
-		FROM questions
-		WHERE quiz_id = ?
-		ORDER BY id ASC`
+		INSERT INTO attempts (student_id, question_id, student_answer, score, duration)
+		VALUES (?, ?, ?, ?, ?)
+	`
 		)
-		.all(quiz_id);
+		.run(student_id, question_id, student_answer, score, duration);
+}
 
-	return questions.map(parseQuestionOptions);
-};
+/**
+ * Fetches all single question leaderboard (not part of any quiz)
+ * @returns {AttemptWithStudent[]}
+ */
+export function fetchSingleQuestionLeaderboard() {
+	return db
+		.prepare(
+			`
+		SELECT 
+			a.id,
+			s.name as student_name,
+			a.student_answer,
+			a.score,
+			a.duration,
+			a.created_at
+		FROM attempts a
+		JOIN students s ON a.student_id = s.id
+		WHERE a.quiz_id IS NULL
+		ORDER BY a.score DESC, a.duration ASC
+	`
+		)
+		.all();
+}

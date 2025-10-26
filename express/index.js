@@ -4,8 +4,10 @@ import notFound from "./middlewares/notFoundHandler.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { getHome } from "./controllers/index.js";
 import { getQuiz, selectQuiz } from "./controllers/quiz.js";
-import { getQuestion } from "./controllers/api/questions.js";
-import getSingleLeaderboard from "./controllers/api/singleLeaderboard.js";
+import {
+	getQuestion,
+	getSingleLeaderboard,
+} from "./controllers/api/singleQuestions.js";
 import {
 	getQuizLeaderboard,
 	getActiveQuizzes,
