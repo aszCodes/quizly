@@ -41,8 +41,10 @@ app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, HOST, () => {
-	console.log(`running on http://${HOST}:${PORT}`);
-});
+if (import.meta.main) {
+	app.listen(PORT, HOST, () => {
+		console.log(`running on http://${HOST}:${PORT}`);
+	});
+}
 
 export default app;
