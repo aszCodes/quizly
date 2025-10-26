@@ -47,19 +47,6 @@ export const getQuizQuestions = (req, res, next) => {
 };
 
 /**
- * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
- */
-export const getQuizLeaderboard = (req, res, next) => {
-	try {
-		const quiz_id = Number(req.params.id);
-		const leaderboard = fetchQuizLeaderboard(quiz_id);
-		res.json(leaderboard);
-	} catch (error) {
-		next(error);
-	}
-};
-
-/**
  * POST /api/submit-quiz - Submit quiz answers
  * @param {object} req.body - { studentName, quizId, answers: [{questionId, answer, duration}] }
  * @returns {object} - { totalScore, results, questionsAnswered }
@@ -86,7 +73,7 @@ export const submitQuizAnswers = (req, res, next) => {
 			});
 		}
 
-		// Fetch all quiz questions once
+		// Fetch quiz questions
 		const quizQuestions = fetchQuizQuestions(quizId);
 
 		if (!quizQuestions || quizQuestions.length === 0) {
@@ -150,6 +137,19 @@ export const submitQuizAnswers = (req, res, next) => {
 			results,
 			questions_answered: results.length,
 		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
+ */
+export const getQuizLeaderboard = (req, res, next) => {
+	try {
+		const quiz_id = Number(req.params.id);
+		const leaderboard = fetchQuizLeaderboard(quiz_id);
+		res.json(leaderboard);
 	} catch (error) {
 		next(error);
 	}

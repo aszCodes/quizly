@@ -26,18 +26,6 @@ export const getQuestion = (req, res, next) => {
 };
 
 /**
- * GET /api/leaderboard - Get single question leaderboard
- */
-export const getSingleLeaderboard = (req, res, next) => {
-	try {
-		const leaderboard = fetchSingleQuestionLeaderboard();
-		res.json(leaderboard);
-	} catch (error) {
-		next(error);
-	}
-};
-
-/**
  * POST /api/submit - Submit single question answer
  * @param {object} req.body - { studentName, questionId, answer, duration }
  * @returns {object} - { correct, score, correctAnswer }
@@ -97,6 +85,18 @@ export const submitSingleAnswer = (req, res, next) => {
 			score: score,
 			correct_answer: question.correct_answer,
 		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * GET /api/leaderboard - Get single question leaderboard
+ */
+export const getSingleLeaderboard = (req, res, next) => {
+	try {
+		const leaderboard = fetchSingleQuestionLeaderboard();
+		res.json(leaderboard);
 	} catch (error) {
 		next(error);
 	}
