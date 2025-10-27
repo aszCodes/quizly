@@ -1,12 +1,8 @@
-/**
- * Centralized error handling middleware
- * @param {Error} err
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
 export default function errorHandler(err, req, res, next) {
-	console.error("Error:", err);
+	// Only log errors outside of test environment
+	if (process.env.NODE_ENV !== "test") {
+		console.error("Error:", err);
+	}
 
 	// Database errors
 	if (err.code === "SQLITE_ERROR" || err.name === "SqliteError") {

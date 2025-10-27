@@ -20,7 +20,7 @@ export const fetchActiveQuizzes = () => {
 			SELECT id, title, is_active, created_at
 			FROM quizzes
 			WHERE is_active = 1 OR is_active IS NULL OR is_active = TRUE
-			ORDER BY created_at DESC`
+			ORDER BY created_at DESC, id DESC`
 		)
 		.all();
 };
