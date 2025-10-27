@@ -1,8 +1,36 @@
 import request from "supertest";
 import app from "../index.js";
-import { createTestQuestion } from "./testUtils.js";
+import {
+	createTestQuestion,
+	createTestStudent,
+	createTestQuiz,
+} from "./testUtils.js";
+import db from "../db/database.js";
 
 describe("GET /api/question", () => {
+	it("should handle malformed JSON in options field", async () => {
+		// Manually insert question with invalid JSON
+		db.prepare(
+			"INSERT INTO questions (question_text, correct_answer, options, is_active) VALUES (?, ?, ?, ?)"
+		).run("Test?", "A", "not valid json", 1);
+
+		const res = await request(app).get("/api/question");
+
+		// The parseQuestionOptions will throw an error, should return 500
+		expect(res.status).toBe(500);
+	});
+
+	it("should handle null options field", async () => {
+		db.prepare(
+			"INSERT INTO questions (question_text, correct_answer, options, is_active) VALUES (?, ?, ?, ?)"
+		).run("Test?", "A", null, 1);
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body.options).toEqual([]);
+	});
+
 	it("should return 404 when no active question exists", async () => {
 		const res = await request(app).get("/api/question");
 
@@ -10,7 +38,7 @@ describe("GET /api/question", () => {
 		expect(res.body.error).toBe("No active question found");
 	});
 
-	it("should return active question", async () => {
+	it("should return active question with parsed JSON options", async () => {
 		createTestQuestion({
 			question_text: "What is 2+2?",
 			correct_answer: "4",
@@ -24,5 +52,971 @@ describe("GET /api/question", () => {
 		expect(res.body).toHaveProperty("id");
 		expect(res.body.question_text).toBe("What is 2+2?");
 		expect(res.body.options).toEqual(["2", "3", "4", "5"]);
+		expect(Array.isArray(res.body.options)).toBe(true);
+	});
+
+	it("should not return correct_answer in response", async () => {
+		createTestQuestion({
+			question_text: "What is the capital of France?",
+			correct_answer: "Paris",
+			options: ["London", "Paris", "Berlin", "Madrid"],
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body).not.toHaveProperty("correct_answer");
+	});
+
+	it("should only return active questions (is_active=1)", async () => {
+		// Create inactive question
+		createTestQuestion({
+			question_text: "Inactive question?",
+			correct_answer: "A",
+			is_active: 0,
+		});
+
+		// Create active question
+		createTestQuestion({
+			question_text: "Active question?",
+			correct_answer: "B",
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body.question_text).toBe("Active question?");
+	});
+
+	it("should return only first active question when multiple are active", async () => {
+		const q1 = createTestQuestion({
+			question_text: "First active question?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		createTestQuestion({
+			question_text: "Second active question?",
+			correct_answer: "B",
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		// Should return the first one created (or oldest based on your logic)
+		expect(res.body.id).toBe(q1);
+		expect(res.body.question_text).toBe("First active question?");
+	});
+
+	it("should not return questions that are part of a quiz", async () => {
+		// Create a quiz first
+		const quizId = createTestQuiz({ title: "Test Quiz" });
+
+		// Create question with quiz_id (part of a quiz)
+		createTestQuestion({
+			question_text: "Quiz question?",
+			correct_answer: "A",
+			quiz_id: quizId,
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(404);
+		expect(res.body.error).toBe("No active question found");
+	});
+
+	it("should handle questions with empty options array", async () => {
+		createTestQuestion({
+			question_text: "Question with no options?",
+			correct_answer: "Yes",
+			options: [],
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body.options).toEqual([]);
+		expect(Array.isArray(res.body.options)).toBe(true);
+	});
+});
+
+describe("POST /api/submit", () => {
+	let questionId;
+
+	beforeEach(() => {
+		questionId = createTestQuestion({
+			question_text: "What is 2+2?",
+			correct_answer: "4",
+			options: ["2", "3", "4", "5"],
+			is_active: 1,
+		});
+	});
+
+	it("should prevent SQL injection in student name queries", async () => {
+		const maliciousName = "'; DROP TABLE attempts; --";
+
+		await request(app).post("/api/submit").send({
+			studentName: maliciousName,
+			questionId: questionId, // Now defined
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Verify attempts table still exists
+		const tableCheck = db
+			.prepare(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='attempts'"
+			)
+			.get();
+		expect(tableCheck).toBeDefined();
+	});
+
+	it("should handle questionId as null", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: null,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should handle duration as null", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: null,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should handle duration as float/decimal", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000.75,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+	});
+
+	it("should handle answer as number instead of string", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: 4,
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+	});
+
+	it("should handle studentName with leading/trailing spaces", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "  John Doe  ",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+
+		// Verify student was created with trimmed name
+		const student = db
+			.prepare("SELECT * FROM students WHERE name = ?")
+			.get("John Doe");
+		expect(student).toBeDefined();
+	});
+
+	it("should handle multiple spaces in student name", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John    Doe", // multiple spaces
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+	});
+
+	it("should handle student names with numbers", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "Student123",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+	});
+
+	it("should handle student names with emojis", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John 😊 Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect([200, 400]).toContain(res.status);
+	});
+
+	it("should handle questionId as negative number", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: -1,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid question ID");
+	});
+
+	it("should handle extremely long answers", async () => {
+		const longAnswer = "A".repeat(10000);
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: longAnswer,
+			duration: 5000,
+		});
+
+		// Should handle gracefully
+		expect([200, 400]).toContain(res.status);
+	});
+
+	it("should record submission timestamp correctly", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+
+		const attempt = db
+			.prepare(
+				"SELECT created_at FROM attempts WHERE question_id = ? ORDER BY id DESC LIMIT 1"
+			)
+			.get(questionId);
+
+		// Verify timestamp field exists and is a valid datetime string
+		expect(attempt).toBeDefined();
+		expect(attempt.created_at).toBeDefined();
+		expect(typeof attempt.created_at).toBe("string");
+
+		// Verify it can be parsed as a valid date
+		const submittedTime = new Date(attempt.created_at);
+		expect(submittedTime.toString()).not.toBe("Invalid Date");
+
+		// Verify it matches SQLite datetime format (YYYY-MM-DD HH:MM:SS)
+		expect(attempt.created_at).toMatch(
+			/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
+		);
+	});
+
+	it("should successfully submit a correct answer", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+		expect(res.body.score).toBe(10);
+		expect(res.body.correct_answer).toBe("4");
+	});
+
+	it("should successfully submit an incorrect answer", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "Jane Doe",
+			questionId: questionId,
+			answer: "3",
+			duration: 3000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(false);
+		expect(res.body.score).toBe(0);
+		expect(res.body.correct_answer).toBe("4");
+	});
+
+	it("should handle case-insensitive answers", async () => {
+		const qId = createTestQuestion({
+			question_text: "What is the capital of France?",
+			correct_answer: "Paris",
+			is_active: 1,
+		});
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: qId,
+			answer: "paris",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+		expect(res.body.score).toBe(10);
+	});
+
+	it("should trim whitespace from answers", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "  4  ",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+		expect(res.body.score).toBe(10);
+	});
+
+	it("should return 400 when studentName is missing", async () => {
+		const res = await request(app).post("/api/submit").send({
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when questionId is missing", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when answer is missing", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when duration is missing", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	// NEW TEST CASES
+
+	it("should return 400 when answer is empty string", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when studentName is empty string", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when studentName is only whitespace", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "   ",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+
+	it("should return 400 when studentName is too short", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "A",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid student name");
+	});
+
+	it("should handle very long student names gracefully", async () => {
+		const longName = "A".repeat(255); // Test boundary
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: longName,
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Should either accept it or return clear error
+		expect([200, 400]).toContain(res.status);
+		if (res.status === 400) {
+			expect(res.body.error).toBeDefined();
+		}
+	});
+
+	it("should reject excessively long student names", async () => {
+		const tooLongName = "A".repeat(300); // Exceeds reasonable limit
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: tooLongName,
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid student name");
+	});
+
+	it("should sanitize student names with SQL injection attempts", async () => {
+		const maliciousName = "Robert'; DROP TABLE students;--";
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: maliciousName,
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Should handle safely (either accept as-is or reject)
+		expect([200, 400]).toContain(res.status);
+
+		// Verify students table still exists
+		const tableCheck = db
+			.prepare(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='students'"
+			)
+			.get();
+		expect(tableCheck).toBeDefined();
+	});
+
+	it("should handle student names with special characters", async () => {
+		const specialName = "O'Brien-Smith (Jr.)";
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: specialName,
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.body.correct).toBe(true);
+	});
+
+	it("should return 400 when duration is negative", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: -100,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid duration");
+	});
+
+	it("should return 400 when duration is zero", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 0,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid duration");
+	});
+
+	it("should handle very large duration values", async () => {
+		const largeDuration = 3600000; // 1 hour in ms
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: largeDuration,
+		});
+
+		// Should either accept or have reasonable limit
+		expect([200, 400]).toContain(res.status);
+	});
+
+	it("should reject unreasonably large duration values", async () => {
+		const unreasonableDuration = Number.MAX_SAFE_INTEGER;
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: unreasonableDuration,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid duration");
+	});
+
+	it("should return 400 when duration is not a number", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: "not-a-number",
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid duration");
+	});
+
+	it("should return 404 when question does not exist", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: 99999,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(404);
+		expect(res.body.error).toBe("Question not found");
+	});
+
+	it("should prevent duplicate submissions from same student", async () => {
+		// First submission
+		await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Second submission (should fail)
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "3",
+			duration: 3000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("You have already attempted this question");
+	});
+
+	it("should treat student names case-sensitively for duplicate checking", async () => {
+		// First submission
+		await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Second submission with different case
+		const res = await request(app).post("/api/submit").send({
+			studentName: "john doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Should be treated as different students or same student based on your business logic
+		// Adjust expectation based on your requirements
+		expect([200, 400]).toContain(res.status);
+	});
+
+	it("should allow different students to submit answers", async () => {
+		// First student
+		const res1 = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		// Second student
+		const res2 = await request(app).post("/api/submit").send({
+			studentName: "Jane Smith",
+			questionId: questionId,
+			answer: "3",
+			duration: 3000,
+		});
+
+		expect(res1.status).toBe(200);
+		expect(res2.status).toBe(200);
+	});
+
+	it("should create student if they don't exist", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "New Student",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+
+		// Verify student was created
+		const student = db
+			.prepare("SELECT * FROM students WHERE name = ?")
+			.get("New Student");
+		expect(student).toBeDefined();
+		expect(student.name).toBe("New Student");
+	});
+
+	it("should use existing student if they already exist", async () => {
+		// Create student first
+		const studentId = createTestStudent("Existing Student");
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "Existing Student",
+			questionId: questionId,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(200);
+
+		// Verify only one student with that name exists
+		const students = db
+			.prepare("SELECT * FROM students WHERE name = ?")
+			.all("Existing Student");
+		expect(students.length).toBe(1);
+		expect(students[0].id).toBe(studentId);
+	});
+
+	it("should handle answers with only whitespace as invalid", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: questionId,
+			answer: "   ",
+			duration: 5000,
+		});
+
+		// After trimming, this becomes empty
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Missing required fields");
+	});
+});
+
+describe("GET /api/leaderboard", () => {
+	it("should handle students with same score and duration", async () => {
+		const q1 = createTestQuestion({
+			question_text: "Question 1?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		// Two students with identical scores and times
+		await request(app).post("/api/submit").send({
+			studentName: "Student A",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		await request(app).post("/api/submit").send({
+			studentName: "Student B",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		const res = await request(app).get("/api/leaderboard");
+
+		expect(res.status).toBe(200);
+		expect(res.body.length).toBe(2);
+		expect(res.body[0].score).toBe(10);
+		expect(res.body[1].score).toBe(10);
+	});
+
+	it("should include all required fields in leaderboard entries", async () => {
+		const q1 = createTestQuestion({
+			question_text: "Question 1?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		await request(app).post("/api/submit").send({
+			studentName: "Student A",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		const res = await request(app).get("/api/leaderboard");
+
+		expect(res.status).toBe(200);
+		expect(res.body[0]).toHaveProperty("student_name");
+		expect(res.body[0]).toHaveProperty("score");
+		expect(res.body[0]).toHaveProperty("duration");
+	});
+
+	it("should return empty array when no attempts exist", async () => {
+		const res = await request(app).get("/api/leaderboard");
+
+		expect(res.status).toBe(200);
+		expect(res.body).toEqual([]);
+	});
+
+	it("should return leaderboard sorted by score then duration", async () => {
+		const q1 = createTestQuestion({
+			question_text: "Question 1?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		// Student 1: correct, slow
+		await request(app).post("/api/submit").send({
+			studentName: "Student A",
+			questionId: q1,
+			answer: "A",
+			duration: 10000,
+		});
+
+		// Student 2: correct, fast
+		await request(app).post("/api/submit").send({
+			studentName: "Student B",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		// Student 3: incorrect, fast
+		await request(app).post("/api/submit").send({
+			studentName: "Student C",
+			questionId: q1,
+			answer: "B",
+			duration: 3000,
+		});
+
+		const res = await request(app).get("/api/leaderboard");
+
+		expect(res.status).toBe(200);
+		expect(res.body.length).toBe(3);
+
+		// Should be sorted: highest score first, then fastest time
+		expect(res.body[0].student_name).toBe("Student B"); // Score 10, 5000ms
+		expect(res.body[0].score).toBe(10);
+		expect(res.body[1].student_name).toBe("Student A"); // Score 10, 10000ms
+		expect(res.body[1].score).toBe(10);
+		expect(res.body[2].student_name).toBe("Student C"); // Score 0
+		expect(res.body[2].score).toBe(0);
+	});
+
+	it("should not include quiz attempts in single question leaderboard", async () => {
+		const q1 = createTestQuestion({
+			question_text: "Single question?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		// Single question attempt
+		await request(app).post("/api/submit").send({
+			studentName: "Student A",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		// Manually create a quiz attempt (need to create quiz first)
+		const quizId = createTestQuiz({ title: "Test Quiz" });
+		const studentId = createTestStudent("Student B");
+		db.prepare(
+			"INSERT INTO attempts (student_id, quiz_id, question_id, student_answer, score, duration) VALUES (?, ?, ?, ?, ?, ?)"
+		).run(studentId, quizId, q1, "A", 10, 5000);
+
+		const res = await request(app).get("/api/leaderboard");
+
+		expect(res.status).toBe(200);
+		expect(res.body.length).toBe(1);
+		expect(res.body[0].student_name).toBe("Student A");
+	});
+});
+
+describe("Question Options JSON Handling", () => {
+	it("should store options as valid JSON string in database", async () => {
+		const options = ["Option A", "Option B", "Option C", "Option D"];
+		const qId = createTestQuestion({
+			question_text: "Test question?",
+			correct_answer: "Option A",
+			options: options,
+			is_active: 1,
+		});
+
+		const question = db
+			.prepare("SELECT options FROM questions WHERE id = ?")
+			.get(qId);
+
+		// Verify it's stored as JSON string
+		expect(typeof question.options).toBe("string");
+
+		// Verify it can be parsed
+		const parsedOptions = JSON.parse(question.options);
+		expect(parsedOptions).toEqual(options);
+	});
+
+	it("should return parsed JSON array when fetching question", async () => {
+		createTestQuestion({
+			question_text: "Test question?",
+			correct_answer: "B",
+			options: ["A", "B", "C", "D"],
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(Array.isArray(res.body.options)).toBe(true);
+		expect(res.body.options).toEqual(["A", "B", "C", "D"]);
+	});
+
+	it("should handle special characters in options", async () => {
+		const options = [
+			"<script>alert('xss')</script>",
+			"O'Brien's answer",
+			'Quote: "Hello"',
+			"Math: 2+2=4",
+		];
+
+		createTestQuestion({
+			question_text: "Special chars?",
+			correct_answer: "Math: 2+2=4",
+			options: options,
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body.options).toEqual(options);
+	});
+
+	it("should handle unicode characters in options", async () => {
+		const options = ["🎉 Party", "中文", "العربية", "Español"];
+
+		createTestQuestion({
+			question_text: "Unicode test?",
+			correct_answer: "🎉 Party",
+			options: options,
+			is_active: 1,
+		});
+
+		const res = await request(app).get("/api/question");
+
+		expect(res.status).toBe(200);
+		expect(res.body.options).toEqual(options);
+	});
+
+	it("should handle questionId as string instead of number", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: "not-a-number",
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid question ID");
+	});
+
+	it("should handle questionId as zero", async () => {
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: 0,
+			answer: "4",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe("Invalid question ID");
+	});
+
+	it("should handle submission for question that is part of a quiz", async () => {
+		const quizId = createTestQuiz({ title: "Test Quiz" });
+		const quizQId = createTestQuestion({
+			question_text: "Quiz question?",
+			correct_answer: "A",
+			quiz_id: quizId,
+			is_active: 1,
+		});
+
+		const res = await request(app).post("/api/submit").send({
+			studentName: "John Doe",
+			questionId: quizQId,
+			answer: "A",
+			duration: 5000,
+		});
+
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBe(
+			"This question is part of a quiz. Use the quiz submission endpoint."
+		);
+	});
+
+	it("should maintain referential integrity", async () => {
+		const q1 = createTestQuestion({
+			question_text: "Question 1?",
+			correct_answer: "A",
+			is_active: 1,
+		});
+
+		await request(app).post("/api/submit").send({
+			studentName: "Student A",
+			questionId: q1,
+			answer: "A",
+			duration: 5000,
+		});
+
+		// Try to delete question (should fail due to FK constraint)
+		expect(() => {
+			db.prepare("DELETE FROM questions WHERE id = ?").run(q1);
+		}).toThrow();
 	});
 });
