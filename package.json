@@ -5,10 +5,36 @@
 	"main": "app.js",
 	"type": "module",
 	"scripts": {
-		"dev": "node --watch --env-file=.env express/index.js",
-		"test": "node test.js",
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix"
+		"dev": "node --watch --env-file=.env express/index.js ",
+		"test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+		"test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+		"test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+	},
+	"jest": {
+		"testEnvironment": "node",
+		"transform": {},
+		"setupFilesAfterEnv": [
+			"<rootDir>/__tests__/setup.js"
+		],
+		"testMatch": [
+			"**/__tests__/**/*.test.js",
+			"**/?(*.)+(spec|test).js"
+		],
+		"testPathIgnorePatterns": [
+			"/node_modules/",
+			"/__tests__/setup.js",
+			"/__tests__/testUtils.js"
+		],
+		"collectCoverageFrom": [
+			"controllers/**/*.js",
+			"db/queries/**/*.js",
+			"middlewares/**/*.js"
+		],
+		"coveragePathIgnorePatterns": [
+			"/node_modules/",
+			"/db/database.js"
+		],
+		"rootDir": "./express"
 	},
 	"repository": {
 		"type": "git",
@@ -21,7 +47,11 @@
 	},
 	"homepage": "https://github.com/aszCodes/quizly#readme",
 	"devDependencies": {
-		"eslint": "^9.37.0"
+		"@types/jest": "^30.0.0",
+		"cross-env": "^10.1.0",
+		"eslint": "^9.37.0",
+		"jest": "^30.2.0",
+		"supertest": "^7.1.4"
 	},
 	"dependencies": {
 		"better-sqlite3": "^12.4.1",
