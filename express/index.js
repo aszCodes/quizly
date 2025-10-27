@@ -21,8 +21,44 @@ const app = express();
 
 const __dirname = path.dirname(import.meta.filename);
 
+// View Engine Setup
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// Static Files
+app.use(express.static(path.join(__dirname, "public")));
+
 // Parse JSON bodies
 app.use(express.json());
+
+// FRONTEND ROUTES
+
+// Home page
+app.get("/", (req, res) => {
+	res.render("home");
+});
+
+// Quiz taking page
+app.get("/quiz/:id", (req, res) => {
+	res.render("quiz", { quizId: req.params.id });
+});
+
+// Quiz leaderboard page
+app.get("/leaderboard/:id", (req, res) => {
+	res.render("leaderboard", { quizId: req.params.id });
+});
+
+// Single question page
+app.get("/single-question", (req, res) => {
+	res.render("single-question");
+});
+
+// Single question leaderboard page
+app.get("/single-leaderboard", (req, res) => {
+	res.render("single-leaderboard");
+});
+
+// API ROUTES
 
 // Single Questions
 app.get("/api/question", getQuestion);
@@ -33,11 +69,12 @@ app.get("/api/quizzes", getActiveQuizzes);
 app.get("/api/quizzes/:id/questions", getQuizQuestions);
 app.post("/api/submit-quiz", submitQuizAnswers);
 
-// API Routes - Leaderboards
+// Leaderboards
 app.get("/api/leaderboard", getSingleLeaderboard);
 app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
 
-// Error Handlers
+// ERROR HANDLERS
+
 app.use(notFound);
 app.use(errorHandler);
 

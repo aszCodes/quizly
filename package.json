@@ -8,7 +8,7 @@
 		"dev": "node --watch --env-file=.env express/index.js ",
 		"test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
 		"test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
-		"test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+		"test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand"
 	},
 	"jest": {
 		"testEnvironment": "node",
