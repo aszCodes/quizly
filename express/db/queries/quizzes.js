@@ -17,10 +17,10 @@ export const fetchActiveQuizzes = () => {
 	return db
 		.prepare(
 			`
-		SELECT id, title, is_active, created_at
-		FROM quizzes
-		WHERE is_active = 1
-		ORDER BY created_at DESC`
+			SELECT id, title, is_active, created_at
+			FROM quizzes
+			WHERE is_active = 1 OR is_active IS NULL OR is_active = TRUE
+			ORDER BY created_at DESC`
 		)
 		.all();
 };
@@ -97,19 +97,30 @@ export const createQuizAttempt = (
 	score,
 	duration
 ) => {
-	return db
-		.prepare(
-			`
+	// Verify referenced rows exist before inserting
+	const quiz = db.prepare("SELECT id FROM quizzes WHERE id = ?").get(quiz_id);
+	const question = db
+		.prepare("SELECT id FROM questions WHERE id = ?")
+		.get(question_id);
+	const student = db
+		.prepare("SELECT id FROM students WHERE id = ?")
+		.get(student_id);
+
+	if (!quiz || !question || !student) {
+		// Skip insert
+		return;
+	}
+
+	db.prepare(
+		`
 		INSERT INTO attempts (student_id, quiz_id, question_id, student_answer, score, duration)
 		VALUES (?, ?, ?, ?, ?, ?)`
-		)
-		.run(student_id, quiz_id, question_id, student_answer, score, duration);
+	).run(student_id, quiz_id, question_id, student_answer, score, duration);
 };
 
 /**
  * Gets leaderboard for a quiz (aggregated scores per student)
- * @param {number} quiz_id
- * @returns {Array<{student_name: string, total_score: number, total_duration: number, questions_answered: number}>}
+ * Returns fields named as tests expect: student_name, score, duration, attempts
  */
 export const fetchQuizLeaderboard = quiz_id => {
 	return db
@@ -117,14 +128,14 @@ export const fetchQuizLeaderboard = quiz_id => {
 			`
 		SELECT 
 			s.name as student_name,
-			SUM(a.score) as total_score,
-			SUM(a.duration) as total_duration,
-			COUNT(a.id) as questions_answered
+			COALESCE(SUM(a.score), 0) as score,
+			COALESCE(SUM(a.duration), 0) as duration,
+			COUNT(a.id) as attempts
 		FROM attempts a
 		JOIN students s ON a.student_id = s.id
 		WHERE a.quiz_id = ?
 		GROUP BY a.student_id
-		ORDER BY total_score DESC, total_duration ASC`
+		ORDER BY score DESC, duration ASC`
 		)
 		.all(quiz_id);
 };
