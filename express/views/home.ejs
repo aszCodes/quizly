@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Quiz App - Home</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<div class="container">
+			<header class="header">
+				<h1>Quizly</h1>
+			</header>
+
+			<main class="main-content">
+				<section class="quiz-section">
+					<h2>Available Quizzes</h2>
+					<div id="quizList" class="quiz-grid">
+						<div class="loading">Loading quizzes...</div>
+					</div>
+				</section>
+
+				<section class="daily-question-section">
+					<h2>Daily Question</h2>
+					<div class="daily-question-card">
+						<p>Answer today's question and test your knowledge!</p>
+						<button
+							onclick="startDailyQuestion()"
+							class="btn btn-secondary"
+						>
+							Start Daily Question
+						</button>
+					</div>
+				</section>
+			</main>
+		</div>
+
+		<script>
+			// Fetch and display quizzes
+			async function loadQuizzes() {
+				try {
+					const response = await fetch("/api/quizzes");
+					const quizzes = await response.json();
+
+					const quizList = document.getElementById("quizList");
+
+					if (quizzes.length === 0) {
+						quizList.innerHTML =
+							'<p class="empty-state">No quizzes available yet.</p>';
+						return;
+					}
+
+					quizList.innerHTML = quizzes
+						.map(
+							quiz => `
+          <div class="quiz-card">
+            <h3>${quiz.title}</h3>
+            <p class="quiz-date">Created: ${new Date(
+				quiz.created_at
+			).toLocaleDateString()}</p>
+            <div class="quiz-actions">
+              <a href="/quiz/${quiz.id}" class="btn btn-primary">Start Quiz</a>
+              <a href="/leaderboard/${
+					quiz.id
+				}" class="btn btn-outline">Leaderboard</a>
+            </div>
+          </div>`
+						)
+						.join("");
+				} catch (error) {
+					console.error("Error loading quizzes:", error);
+					document.getElementById("quizList").innerHTML =
+						'<p class="error">Failed to load quizzes. Please try again.</p>';
+				}
+			}
+
+			function startDailyQuestion() {
+				window.location.href = "/daily-question";
+			}
+
+			// Load quizzes when page loads
+			loadQuizzes();
+		</script>
+	</body>
+</html>
