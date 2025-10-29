@@ -13,6 +13,7 @@ import {
 	getQuizQuestions,
 	submitQuizAnswers,
 } from "./controllers/data/quiz.js";
+import { getQuizById } from "../express/db/queries/quizzes.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -39,13 +40,41 @@ app.get("/", (req, res) => {
 });
 
 // Quiz taking page
-app.get("/quiz/:id", (req, res) => {
-	res.render("quiz", { quizId: req.params.id });
+app.get("/quiz/:id", (req, res, next) => {
+	const rawId = req.params.id;
+	const quizId = Number(rawId);
+
+	// Check if valid number
+	if (!rawId || isNaN(quizId) || quizId <= 0) {
+		return next();
+	}
+
+	// Check if quiz exists
+	const quiz = getQuizById(quizId);
+	if (!quiz) {
+		return next();
+	}
+
+	res.render("quiz", { quizId: quizId });
 });
 
 // Quiz leaderboard page
-app.get("/leaderboard/:id", (req, res) => {
-	res.render("leaderboard", { quizId: req.params.id });
+app.get("/leaderboard/:id", (req, res, next) => {
+	const rawId = req.params.id;
+	const quizId = Number(rawId);
+
+	// Check if valid number
+	if (!rawId || isNaN(quizId) || quizId <= 0) {
+		return next();
+	}
+
+	// Check if quiz exists
+	const quiz = getQuizById(quizId);
+	if (!quiz) {
+		return next();
+	}
+
+	res.render("leaderboard", { quizId: quizId });
 });
 
 // Single question page
