@@ -3,182 +3,186 @@ import db from "./database.js";
 console.log("Seeding database...");
 
 try {
-	// Clear existing data (optional - comment out if you want to keep existing data)
-	// db.exec('DELETE FROM attempts');
-	// db.exec('DELETE FROM questions');
-	// db.exec('DELETE FROM quizzes');
-	// db.exec('DELETE FROM students');
+	// Optional cleanup (uncomment if needed)
+	// db.exec("DELETE FROM attempts");
+	// db.exec("DELETE FROM questions");
+	// db.exec("DELETE FROM quizzes");
+	// db.exec("DELETE FROM students");
 
-	// Insert sample quizzes
-	const quiz1 = db
+	// ============================================
+	// 📘 Insert Quiz: Java Basics (Week 3–4)
+	// ============================================
+	const javaQuiz = db
 		.prepare(
 			`
-		INSERT INTO quizzes (title, is_active)
-		VALUES (?, ?)
-	`
+			INSERT INTO quizzes (title, is_active)
+			VALUES (?, ?)
+		`
 		)
-		.run("JavaScript Basics", 1);
+		.run("Java Basics (Week 3–4)", 1);
 
-	const quiz2 = db
-		.prepare(
-			`
-		INSERT INTO quizzes (title, is_active)
-		VALUES (?, ?)
-	`
-		)
-		.run("HTML & CSS Quiz", 1);
+	const quizId = javaQuiz.lastInsertRowid;
+	console.log(`Quiz created with ID: ${quizId}`);
 
-	const quiz3 = db
-		.prepare(
-			`
-		INSERT INTO quizzes (title, is_active)
-		VALUES (?, ?)
-	`
-		)
-		.run("Node.js Fundamentals", 1);
-
-	console.log("Quizzes created");
-
-	// Insert questions for Quiz 1 (JavaScript Basics)
-	db.prepare(
-		`
+	// ============================================
+	// 🧩 Insert 20 Questions
+	// ============================================
+	const insertQuestion = db.prepare(`
 		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
 		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"What is the result of 2 + 2?",
-		"4",
-		JSON.stringify(["2", "3", "4", "5"]),
-		quiz1.lastInsertRowid
+	`);
+
+	const questions = [
+		// Variables & Data Types
+		[
+			"Which of the following correctly declares a variable in Java?",
+			'String name = "Juan";',
+			[
+				"name = Juan;",
+				'String name = "Juan";',
+				'var name = "Juan";',
+				"String name: Juan;",
+			],
+		],
+		[
+			"What data type is used for decimal numbers?",
+			"double",
+			["int", "double", "char", "boolean"],
+		],
+		[
+			"Which of the following is NOT a primitive data type in Java?",
+			"String",
+			["int", "char", "boolean", "String"],
+		],
+		[
+			"Which keyword is used to define a constant variable?",
+			"final",
+			["static", "final", "const", "constant"],
+		],
+		[
+			"Which data type stores a single character, such as 'A'?",
+			"char",
+			["String", "char", "boolean", "int"],
+		],
+		[
+			"What value does an uninitialized int variable have by default in Java?",
+			"0",
+			["null", "0", "undefined", "error"],
+		],
+		[
+			"What is the correct way to declare a boolean variable?",
+			"boolean isJavaFun = true;",
+			[
+				"bool isJavaFun = true;",
+				"boolean isJavaFun = true;",
+				"boolean isJavaFun == true;",
+				"Boolean isJavaFun = true;",
+			],
+		],
+		[
+			"What is the size (in bits) of an int in Java?",
+			"32",
+			["8", "16", "32", "64"],
+		],
+
+		// Arithmetic Operators
+		[
+			"What operator gives the remainder of a division?",
+			"%",
+			["/", "*", "%", "//"],
+		],
+		["What is the result of 10 % 3?", "1", ["0", "1", "2", "3"]],
+		[
+			"Which operator increases a variable by 1?",
+			"++",
+			["--", "++", "+=", "+1"],
+		],
+		[
+			"Which operator decreases a variable by 1?",
+			"--",
+			["++", "--", "-=", "-1"],
+		],
+		[
+			"What will be the output of: int x = 5 / 2;",
+			"2",
+			["2", "2.5", "2.0", "Error"],
+		],
+		[
+			"What is the result of: double x = 5.0 / 2;",
+			"2.5",
+			["2", "2.5", "2.0", "Error"],
+		],
+		[
+			"What does the expression 'x += 5' mean?",
+			"Add 5 to x and assign the result to x",
+			[
+				"Increase x by 5",
+				"Add 5 to x and assign the result to x",
+				"Assign 5 to x",
+				"Compare x to 5",
+			],
+		],
+
+		// If Statements
+		[
+			"What will this code print? if (score >= 60) System.out.println('Pass'); else System.out.println('Fail'); when score = 75;",
+			"Pass",
+			["Fail", "Pass", "Error", "Nothing"],
+		],
+		[
+			"What does this code do? if (age >= 18) System.out.println('Adult');",
+			'Prints "Adult" if age is 18 or older',
+			[
+				"Always prints Adult",
+				"Prints Adult if age < 18",
+				'Prints "Adult" if age is 18 or older',
+				"Throws error",
+			],
+		],
+		[
+			"What is the correct syntax for an if statement in Java?",
+			'if (x > 5) { System.out.println("Big"); }',
+			[
+				'if x > 5 then System.out.println("Big");',
+				'if (x > 5) System.out.println("Big");',
+				'if x > 5 { System.out.println("Big"); }',
+				'if (x > 5) { System.out.println("Big"); }',
+			],
+		],
+		[
+			"What happens if the condition in an if statement is false and there is no else block?",
+			"Nothing happens",
+			[
+				"The program crashes",
+				"Nothing happens",
+				"An error occurs",
+				"The program skips to next if",
+			],
+		],
+		[
+			"Which of the following statements correctly checks if a number is NOT equal to 10?",
+			"if (num != 10)",
+			[
+				"if (num == 10)",
+				"if (num =! 10)",
+				"if (num <> 10)",
+				"if (num != 10)",
+			],
+		],
+	];
+
+	for (const [text, answer, opts] of questions) {
+		insertQuestion.run(text, answer, JSON.stringify(opts), quizId);
+	}
+
+	console.log(
+		`✅ Inserted ${questions.length} questions for Java Basics quiz`
 	);
 
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"Which keyword is used to declare a constant in JavaScript?",
-		"const",
-		JSON.stringify(["var", "let", "const", "constant"]),
-		quiz1.lastInsertRowid
-	);
-
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"What does JSON stand for?",
-		"JavaScript Object Notation",
-		JSON.stringify([
-			"JavaScript Object Notation",
-			"Java Standard Object Notation",
-			"JavaScript Online Notation",
-			"Java Syntax Object Network",
-		]),
-		quiz1.lastInsertRowid
-	);
-
-	console.log("JavaScript Basics questions created");
-
-	// Insert questions for Quiz 2 (HTML & CSS)
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"Which HTML tag is used for creating a hyperlink?",
-		"<a>",
-		JSON.stringify(["<link>", "<a>", "<href>", "<url>"]),
-		quiz2.lastInsertRowid
-	);
-
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"What does CSS stand for?",
-		"Cascading Style Sheets",
-		JSON.stringify([
-			"Cascading Style Sheets",
-			"Creative Style System",
-			"Computer Style Sheets",
-			"Colorful Style Sheets",
-		]),
-		quiz2.lastInsertRowid
-	);
-
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"Which property is used to change the background color in CSS?",
-		"background-color",
-		JSON.stringify(["color", "background-color", "bg-color", "bgcolor"]),
-		quiz2.lastInsertRowid
-	);
-
-	console.log("HTML & CSS questions created");
-
-	// Insert questions for Quiz 3 (Node.js)
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"What is Node.js built on?",
-		"V8 JavaScript Engine",
-		JSON.stringify([
-			"V8 JavaScript Engine",
-			"SpiderMonkey Engine",
-			"JavaScriptCore",
-			"Chakra Engine",
-		]),
-		quiz3.lastInsertRowid
-	);
-
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id)
-		VALUES (?, ?, ?, ?)
-	`
-	).run(
-		"Which command is used to install packages in Node.js?",
-		"npm install",
-		JSON.stringify(["npm install", "node install", "npm get", "node get"]),
-		quiz3.lastInsertRowid
-	);
-
-	console.log("Node.js questions created");
-
-	// Insert a single standalone question (not part of a quiz)
-	db.prepare(
-		`
-		INSERT INTO questions (question_text, correct_answer, options, quiz_id, is_active)
-		VALUES (?, ?, ?, ?, ?)
-	`
-	).run(
-		"What is the capital of France?",
-		"Paris",
-		JSON.stringify(["London", "Berlin", "Paris", "Madrid"]),
-		null, // Not part of a quiz
-		1 // Active
-	);
-
-	console.log("Single question created");
-
-	console.log("\nDatabase seeded successfully!");
-	console.log("You can now run your server and visit http://localhost:3000");
+	console.log("\n✅ Database seeded successfully!");
+	console.log("➡️  Run your server and visit http://localhost:3000");
 } catch (error) {
-	console.error("Error seeding database:", error);
+	console.error("❌ Error seeding database:", error);
 	process.exit(1);
 }
 
