@@ -10,6 +10,13 @@ import { findOrCreateStudent } from "../../db/queries/students.js";
 
 /**
  * GET /api/quizzes - Get all active quizzes
+ *
+ * @description Fetch the currently active single question (not part of any quiz)
+ * @returns {Array} Array of `{ id, title, is_active, created_at }`
+ * @behavior
+ * - Only returns active quizzes (`is_active = 1`)
+ * - Ordered by newest first
+ * - Excludes sensitive fields like `deleted_at`
  */
 export const getActiveQuizzes = (req, res, next) => {
 	try {
@@ -22,6 +29,15 @@ export const getActiveQuizzes = (req, res, next) => {
 
 /**
  * GET /api/quizzes/:id/questions - Get all questions for a quiz
+ *
+ * @description Get all questions for a specific quiz
+ * @param {string} req.params.id - Quiz ID
+ * @returns {Array} Array of `{ id, question_text, options[] }`
+ * @behavior
+ * - Excludes `correct_answer`
+ * - Validates quiz ID (numeric, positive)
+ * - Returns 404 if quiz doesn't exist or has no questions
+ * - Returns 400 for invalid IDs (non-numeric, zero, negative)
  */
 export const getQuizQuestions = (req, res, next) => {
 	try {
@@ -59,7 +75,34 @@ export const getQuizQuestions = (req, res, next) => {
 
 /**
  * POST /api/submit-quiz - Submit quiz answers
- * body: { studentName, section, quizId, answers: [{questionId, answer, duration}], duration }
+ *
+ * @description Submit answers for entire quiz
+ * @param {Object} req.body - Request body
+ * @param {number} req.body.quizId - Quiz ID
+ * @param {string} req.body.studentName - Student name (minimum 2 characters)
+ * @param {string} [req.body.section] - Optional section (trimmed, rejects whitespace-only)
+ * @param {Array<Object>} req.body.answers - Array of answers
+ * @param {number} req.body.answers[].questionId - Question ID
+ * @param {string|number} req.body.answers[].answer - Student's answer
+ * @param {number} [req.body.answers[].duration] - Time taken for this question
+ * @param {number} [req.body.duration] - Default duration for all questions
+ *
+ * @returns {Object} `{ totalScore, correctCount, incorrectCount, results[], questionsAnswered }`
+ *
+ * @validation
+ * - Student name: minimum 2 characters
+ * - Section: optional, trimmed, rejects whitespace-only
+ * - Answers: must be non-empty array
+ * - Duration: positive number (per-answer or top-level)
+ * - Quiz must exist and have questions
+ *
+ * @behavior
+ * - Case-insensitive answer comparison
+ * - Ignores invalid question IDs (not in quiz)
+ * - Uses per-answer duration if provided, falls back to top-level
+ * - Converts non-string answers to strings
+ * - Prevents duplicate attempts (same student + quiz)
+ * - Score: 10 points per correct answer
  */
 export const submitQuizAnswers = (req, res, next) => {
 	try {
@@ -208,6 +251,18 @@ export const submitQuizAnswers = (req, res, next) => {
 
 /**
  * GET /api/quizzes/:id/leaderboard - Get quiz leaderboard
+ *
+ * @description Get leaderboard for a specific quiz
+ * @param {string} req.params.id - Quiz ID
+ * @returns {Array} Array of `{ student_name, score, duration, attempts }`
+ *
+ * @behavior
+ * - Aggregates all attempts per student
+ * - Score: sum of all question scores
+ * - Duration: sum of all question durations
+ * - Sorted by: score DESC, then duration ASC
+ * - Returns 404 for non-existent quiz
+ * - Returns 400 for invalid quiz ID
  */
 export const getQuizLeaderboard = (req, res, next) => {
 	try {

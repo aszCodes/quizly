@@ -13,6 +13,14 @@ const MAX_DURATION = 3600000;
 
 /**
  * GET /api/question - Get active single question
+ *
+ * @description Fetch the currently active single question (not part of any quiz)
+ * @returns {Object} `{ id, question_text, options[] }`
+ *
+ * @behavior
+ * - Excludes `correct_answer`
+ * - Returns 404 if no active question exists
+ * - Excludes quiz-linked questions
  */
 export const getQuestion = (req, res, next) => {
 	try {
@@ -31,8 +39,27 @@ export const getQuestion = (req, res, next) => {
 
 /**
  * POST /api/submit - Submit single question answer
- * @param {object} req.body - { studentName, section, questionId, answer, duration }
- * @returns {object} - { correct, score, correctAnswer }
+ *
+ * @description Submit answer for a single question
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.studentName - Student name (2-255 characters, trimmed)
+ * @param {string} [req.body.section] - Optional section (trimmed, null if empty)
+ * @param {number} req.body.questionId - Question ID
+ * @param {string|number} req.body.answer - Student's answer (case-insensitive comparison, trimmed)
+ * @param {number} req.body.duration - Time taken (positive number, max 3,600,000ms / 1 hour)
+ *
+ * @returns {Object} `{ correct, score, correct_answer }`
+ *
+ * @validation
+ * - Student name: 2-255 characters, trimmed
+ * - Duration: positive number, max 3,600,000ms (1 hour)
+ * - Answer: case-insensitive comparison, trimmed
+ * - Section: optional, trimmed, null if empty
+ *
+ * @behavior
+ * - Score: 10 points if correct, 0 if incorrect
+ * - Prevents duplicate attempts (same student + question)
+ * - Rejects quiz-linked questions
  */
 export const submitSingleAnswer = (req, res, next) => {
 	try {
@@ -179,6 +206,13 @@ export const submitSingleAnswer = (req, res, next) => {
 
 /**
  * GET /api/leaderboard - Get single question leaderboard
+ *
+ * @description Get leaderboard for all single questions
+ * @returns {Array} Array of `{ student_name, score, duration, created_at }`
+ *
+ * @behavior
+ * - Sorted by: score DESC, then duration ASC
+ * - Excludes quiz attempts
  */
 export const getSingleLeaderboard = (req, res, next) => {
 	try {
