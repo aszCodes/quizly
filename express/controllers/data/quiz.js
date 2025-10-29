@@ -80,14 +80,13 @@ export const submitQuizAnswers = (req, res, next) => {
 			return res.status(400).json({ error: "Invalid student name" });
 		}
 
-		const trimmedSection =
-			section && typeof section === "string" ? section.trim() : null;
-
-		// Validate section if provided
-		if (trimmedSection !== null && trimmedSection.length === 0) {
-			return res.status(400).json({
-				error: "Invalid section",
-			});
+		// Handle section: trim if string, convert empty string to null
+		let trimmedSection = null;
+		if (section !== undefined && section !== null) {
+			if (typeof section === "string") {
+				const cleaned = section.trim();
+				trimmedSection = cleaned.length > 0 ? cleaned : null;
+			}
 		}
 
 		// Validate top-level duration when provided
@@ -116,7 +115,7 @@ export const submitQuizAnswers = (req, res, next) => {
 		// Build lookup map
 		const questionsMap = new Map(quizQuestions.map(q => [q.id, q]));
 
-		// Find or create student
+		// Find or create student with section
 		const student = findOrCreateStudent(studentName.trim(), trimmedSection);
 
 		// Duplicate attempt check

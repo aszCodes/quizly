@@ -72,8 +72,15 @@ export const submitSingleAnswer = (req, res, next) => {
 		// Trim inputs
 		const trimmedName = studentNameStr.trim();
 		const trimmedAnswer = answerStr.trim();
-		const trimmedSection =
-			section && typeof section === "string" ? section.trim() : null;
+
+		// Handle section: trim if string, convert empty string to null
+		let trimmedSection = null;
+		if (section !== undefined && section !== null) {
+			if (typeof section === "string") {
+				const cleaned = section.trim();
+				trimmedSection = cleaned.length > 0 ? cleaned : null;
+			}
+		}
 
 		// Trimmed values aren't empty
 		if (!trimmedName || !trimmedAnswer) {
@@ -98,13 +105,6 @@ export const submitSingleAnswer = (req, res, next) => {
 		if (trimmedName.length > MAX_NAME_LENGTH) {
 			return res.status(400).json({
 				error: "Invalid student name",
-			});
-		}
-
-		// Validate section if provided
-		if (trimmedSection !== null && trimmedSection.length === 0) {
-			return res.status(400).json({
-				error: "Invalid section",
 			});
 		}
 
