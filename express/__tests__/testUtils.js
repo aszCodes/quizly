@@ -10,10 +10,10 @@ export const clearDatabase = () => {
 };
 
 // Create test data helpers
-export const createTestStudent = (name = "Test Student") => {
+export const createTestStudent = (name = "Test Student", section = null) => {
 	const result = db
-		.prepare("INSERT INTO students (name) VALUES (?)")
-		.run(name);
+		.prepare("INSERT INTO students (name, section) VALUES (?, ?)")
+		.run(name, section);
 	return result.lastInsertRowid;
 };
 
