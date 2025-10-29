@@ -166,24 +166,26 @@
 				// Render question
 				const container = document.getElementById("questionContainer");
 				container.classList.remove("hidden");
+
+				const optionsHtml = question.options
+					.map((option, i) => {
+						const safeOption = escapeHtml(option);
+						return `
+							<button 
+								class="option-btn"
+								onclick='selectAnswer(${JSON.stringify(option)})'
+								id="option-${i}"
+							>
+								${safeOption}
+							</button>
+						`;
+					})
+					.join("");
+
 				container.innerHTML = `
 					<div class="question-card">
-						<h2 class="question-text">${question.question_text}</h2>
-						<div class="options-container">
-							${question.options
-								.map(
-									(option, i) => `
-								<button 
-									class="option-btn" 
-									onclick="selectAnswer('${escapeHtml(option)}')"
-									id="option-${i}"
-								>
-									${option}
-								</button>
-							`
-								)
-								.join("")}
-						</div>
+						<h2 class="question-text">${escapeHtml(question.question_text)}</h2>
+						<div class="options-container">${optionsHtml}</div>
 					</div>
 				`;
 
@@ -229,9 +231,7 @@
 
 					const response = await fetch("/api/submit-quiz", {
 						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
+						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify({
 							quizId: quizId,
 							studentName: studentName,
