@@ -390,3 +390,65 @@ body {
 .back-link:hover {
 	text-decoration: underline;
 }
+
+.option-radio {
+	display: flex;
+	align-items: center;
+	padding: 1rem;
+	margin-bottom: 0.75rem;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background: white;
+}
+
+.option-radio:hover {
+	border-color: var(--color-primary);
+	background: #f8f9fa;
+}
+
+.option-radio input[type="radio"] {
+	width: 20px;
+	height: 20px;
+	margin-right: 12px;
+	cursor: pointer;
+	accent-color: var(--color-primary);
+}
+
+.option-radio label {
+	flex: 1;
+	cursor: pointer;
+	font-size: 1rem;
+	user-select: none;
+}
+
+.option-radio input[type="radio"]:checked + label {
+	font-weight: 600;
+	color: var(--color-primary);
+}
+
+.option-radio:has(input[type="radio"]:checked) {
+	border-color: var(--color-primary);
+	background: #f0f7ff;
+}
+
+.navigation-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: 1rem;
+	margin-top: 2rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid #e0e0e0;
+}
+
+.btn-next {
+	padding: 0.75rem 2rem;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.btn-next:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

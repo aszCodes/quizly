@@ -84,6 +84,7 @@
 			let studentSection = "";
 			let quizStartTime = 0;
 			let questionStartTime = 0;
+			let selectedAnswer = null;
 
 			// Prevent accidental back navigation
 			window.addEventListener("beforeunload", e => {
@@ -150,6 +151,7 @@
 
 			function showQuestion(index) {
 				currentIndex = index;
+				selectedAnswer = null;
 				const question = questions[index];
 
 				// Update progress
@@ -170,57 +172,79 @@
 				const optionsHtml = question.options
 					.map((option, i) => {
 						const safeOption = escapeHtml(option);
+						const optionId = `option-${index}-${i}`;
 						return `
-							<button 
-								class="option-btn"
-								onclick='selectAnswer(${JSON.stringify(option)})'
-								id="option-${i}"
-							>
-								${safeOption}
-							</button>
+							<div class="option-radio">
+								<input 
+									type="radio" 
+									name="answer" 
+									id="${optionId}"
+									data-option-index="${i}"
+								/>
+								<label for="${optionId}">${safeOption}</label>
+							</div>
 						`;
 					})
 					.join("");
+
+				const isLastQuestion = index === questions.length - 1;
+				const buttonText = isLastQuestion ? "Submit Quiz" : "Next";
 
 				container.innerHTML = `
 					<div class="question-card">
 						<h2 class="question-text">${escapeHtml(question.question_text)}</h2>
 						<div class="options-container">${optionsHtml}</div>
+						<div class="navigation-buttons">
+							<button 
+								id="nextBtn"
+								class="btn btn-primary btn-next"
+								onclick="handleNext()"
+								disabled
+							>
+								${buttonText}
+							</button>
+						</div>
 					</div>
 				`;
+
+				// Add event listeners to radio buttons
+				const radios = container.querySelectorAll(
+					'input[type="radio"]'
+				);
+				radios.forEach(radio => {
+					radio.addEventListener("change", function () {
+						const optionIndex = parseInt(this.dataset.optionIndex);
+						selectedAnswer = question.options[optionIndex];
+						document.getElementById("nextBtn").disabled = false;
+					});
+				});
 
 				// Reset question timer
 				questionStartTime = Date.now();
 			}
 
-			function selectAnswer(answer) {
+			function handleNext() {
+				if (!selectedAnswer) {
+					alert("Please select an answer");
+					return;
+				}
+
 				const question = questions[currentIndex];
 				const duration = Date.now() - questionStartTime;
 
 				// Store answer
 				answers.push({
 					questionId: question.id,
-					answer: answer,
+					answer: selectedAnswer,
 					duration: duration,
 				});
 
-				// Visual feedback
-				const buttons = document.querySelectorAll(".option-btn");
-				buttons.forEach(btn => {
-					if (btn.textContent.trim() === answer) {
-						btn.classList.add("selected");
-					}
-					btn.disabled = true;
-				});
-
 				// Move to next question or submit
-				setTimeout(() => {
-					if (currentIndex < questions.length - 1) {
-						showQuestion(currentIndex + 1);
-					} else {
-						submitQuiz();
-					}
-				}, 300);
+				if (currentIndex < questions.length - 1) {
+					showQuestion(currentIndex + 1);
+				} else {
+					submitQuiz();
+				}
 			}
 
 			async function submitQuiz() {
@@ -297,6 +321,11 @@
 								</div>
 								<div class="result-stat-label">Accuracy</div>
 							</div>
+						</div>
+
+						<div class="navigation-buttons">
+							<a href="/" class="btn btn-outline">Back to Home</a>
+							<a href="/leaderboard/${quizId}" class="btn btn-primary">View Leaderboard</a>
 						</div>
 					</div>
 				`;
