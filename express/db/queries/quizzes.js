@@ -126,16 +126,18 @@ export const fetchQuizLeaderboard = quiz_id => {
 	return db
 		.prepare(
 			`
-		SELECT 
-			s.name as student_name,
-			COALESCE(SUM(a.score), 0) as score,
-			COALESCE(SUM(a.duration), 0) as duration,
-			COUNT(a.id) as attempts
-		FROM attempts a
-		JOIN students s ON a.student_id = s.id
-		WHERE a.quiz_id = ?
-		GROUP BY a.student_id
-		ORDER BY score DESC, duration ASC`
+			SELECT 
+				s.name AS student_name,
+				s.section AS section,
+				COALESCE(SUM(a.score), 0) AS score,
+				COALESCE(SUM(a.duration), 0) AS duration,
+				COUNT(a.id) AS attempts
+			FROM attempts a
+			JOIN students s ON a.student_id = s.id
+			WHERE a.quiz_id = ?
+			GROUP BY a.student_id
+			ORDER BY score DESC, duration ASC
+			`
 		)
 		.all(quiz_id);
 };

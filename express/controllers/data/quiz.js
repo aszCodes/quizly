@@ -114,7 +114,7 @@ export const getQuizQuestions = (req, res, next) => {
  * - Uses per-answer duration if provided, falls back to top-level
  * - Converts non-string answers to strings
  * - Prevents duplicate attempts (same student + quiz)
- * - Score: 10 points per correct answer
+ * - Score: 1 points per correct answer
  */
 export const submitQuizAnswers = (req, res, next) => {
 	try {
@@ -226,7 +226,7 @@ export const submitQuizAnswers = (req, res, next) => {
 			const isCorrect =
 				ansValue.trim().toLowerCase() ===
 				question.correct_answer.trim().toLowerCase();
-			const score = isCorrect ? 10 : 0;
+			const score = isCorrect ? 1 : 0;
 			totalScore += score;
 
 			// persist attempt: duration value per attempt will be ans.duration if provided else top-level duration or 0

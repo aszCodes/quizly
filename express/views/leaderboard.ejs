@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Leaderboard - Quizly</title>
+		<link rel="stylesheet" href="../style.css" />
+		<link rel="shortcut icon" href="../logo.png" type="image/x-icon" />
+		<style>
+			.leaderboard-card {
+				background: var(--color-card-bg);
+				border-radius: var(--radius);
+				padding: 1.5rem;
+				box-shadow: 0 2px 6px var(--color-shadow);
+				overflow-x: auto;
+			}
+
+			.leaderboard-wrapper {
+				width: 100%;
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+			}
+
+			.leaderboard-table {
+				width: 100%;
+				min-width: 500px;
+				border-collapse: collapse;
+				margin-top: 1rem;
+				white-space: nowrap;
+			}
+
+			.leaderboard-table th,
+			.leaderboard-table td {
+				padding: 0.75rem 1rem;
+				text-align: left;
+				border-bottom: 1px solid #e0e0e0;
+				font-size: 0.95rem;
+			}
+
+			.leaderboard-table th {
+				color: var(--color-subheading);
+				font-weight: 600;
+				background: #f9f9f9;
+				position: sticky;
+				top: 0;
+				z-index: 1;
+			}
+
+			.leaderboard-table tr:hover {
+				background: #fafafa;
+			}
+
+			.rank {
+				font-weight: 700;
+				color: var(--color-primary);
+			}
+
+			.empty-state {
+				text-align: center;
+				padding: 2rem;
+				color: var(--color-muted);
+			}
+
+			@media (max-width: 600px) {
+				.leaderboard-table th,
+				.leaderboard-table td {
+					padding: 0.5rem 0.75rem;
+					font-size: 0.85rem;
+				}
+				h2 {
+					font-size: 1.2rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container quiz-container">
+			<a href="/" class="back-link">← Back to Home</a>
+
+			<header class="header">
+				<img src="../logo.png" alt="Achievers logo" />
+			</header>
+
+			<div id="leaderboardContainer" class="leaderboard-card">
+				<div id="loadingMessage" class="loading">
+					Loading leaderboard...
+				</div>
+			</div>
+		</div>
+
+		<script>
+			const quizId = parseInt("<%= quizId %>");
+			const leaderboardContainer = document.getElementById(
+				"leaderboardContainer"
+			);
+
+			async function loadLeaderboard() {
+				try {
+					const response = await fetch(
+						`/api/quizzes/${quizId}/leaderboard`
+					);
+					if (!response.ok)
+						throw new Error("Failed to load leaderboard");
+
+					const data = await response.json();
+					if (!Array.isArray(data) || data.length === 0) {
+						leaderboardContainer.innerHTML = `
+							<div class="empty-state">No leaderboard data available yet.</div>
+						`;
+						return;
+					}
+
+					const rows = data
+						.map(
+							(entry, index) => `
+							<tr>
+								<td class="rank">#${index + 1}</td>
+								<td>${entry.student_name}</td>
+								<td>${entry.section || "-"}</td>
+								<td>${entry.score}</td>
+								<td>${(entry.duration / 1000).toFixed(1)}s</td>
+							</tr>`
+						)
+						.join("");
+
+					leaderboardContainer.innerHTML = `
+						<h2 style="margin-bottom: 1rem;">Leaderboard</h2>
+						<div class="leaderboard-wrapper">
+							<table class="leaderboard-table">
+								<thead>
+									<tr>
+										<th>Rank</th>
+										<th>Name</th>
+										<th>Section</th>
+										<th>Score</th>
+										<th>Time</th>
+									</tr>
+								</thead>
+								<tbody>${rows}</tbody>
+							</table>
+						</div>
+					`;
+				} catch (err) {
+					console.error(err);
+					leaderboardContainer.innerHTML = `
+						<div class="error">Failed to load leaderboard.</div>
+					`;
+				}
+			}
+
+			loadLeaderboard();
+		</script>
+	</body>
+</html>

@@ -135,15 +135,6 @@
 						return;
 					}
 
-					// Get quiz title
-					const quizzesResponse = await fetch("/api/quizzes");
-					const quizzes = await quizzesResponse.json();
-					const quiz = quizzes.find(q => q.id === quizId);
-					if (quiz) {
-						document.getElementById("quizTitle").textContent =
-							quiz.title;
-					}
-
 					hideMessage();
 					quizStartTime = Date.now();
 					questionStartTime = Date.now();
@@ -281,7 +272,7 @@
 
 				container.innerHTML = `
 					<div class="results-card">
-						<h2>Quiz Complete! 🎉</h2>
+						<h2>Quiz Complete!</h2>
 						<div class="score-display">${result.totalScore}</div>
 						<p style="color: var(--color-muted); margin-bottom: 1.5rem;">
 							Total Score
@@ -306,15 +297,6 @@
 								</div>
 								<div class="result-stat-label">Accuracy</div>
 							</div>
-						</div>
-
-						<div style="margin-top: 2rem;">
-							<a href="/leaderboard/${quizId}" class="btn btn-secondary" style="margin-right: 0.5rem;">
-								View Leaderboard
-							</a>
-							<a href="/" class="btn btn-outline">
-								Back to Home
-							</a>
 						</div>
 					</div>
 				`;
