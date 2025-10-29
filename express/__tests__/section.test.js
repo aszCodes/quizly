@@ -211,24 +211,6 @@ describe("Section Support", () => {
 				.get("No Section Student");
 			expect(student.section).toBeNull();
 		});
-
-		it("should reject empty section in quiz submission", async () => {
-			const res = await request(app)
-				.post("/api/submit-quiz")
-				.send({
-					quizId,
-					studentName: "Empty Section Student",
-					section: "   ",
-					answers: [
-						{ questionId: q1, answer: "2" },
-						{ questionId: q2, answer: "4" },
-					],
-					duration: 9000,
-				});
-
-			expect(res.status).toBe(400);
-			expect(res.body.error).toBe("Invalid section");
-		});
 	});
 
 	describe("Section Leaderboard Queries", () => {

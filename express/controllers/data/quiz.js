@@ -8,6 +8,16 @@ import {
 } from "../../db/queries/quizzes.js";
 import { findOrCreateStudent } from "../../db/queries/students.js";
 
+// Helper to shuffle questions
+function shuffleArray(array) {
+	const shuffled = [...array]; // Create a copy
+	for (let i = shuffled.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+	}
+	return shuffled;
+}
+
 /**
  * GET /api/quizzes - Get all active quizzes
  *
@@ -61,7 +71,9 @@ export const getQuizQuestions = (req, res, next) => {
 			});
 		}
 
-		const questionsWithOptions = questions.map(q => ({
+		const shuffledQuestions = shuffleArray(questions);
+
+		const questionsWithOptions = shuffledQuestions.map(q => ({
 			id: q.id,
 			question_text: q.question_text,
 			options: q.options,

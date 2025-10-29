@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Quiz - Quizly</title>
+		<link rel="stylesheet" href="../style.css" />
+		<link rel="shortcut icon" href="../logo.png" type="image/x-icon" />
+		<style>
+			/* Prevent accidental navigation */
+			body {
+				overscroll-behavior: contain;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container quiz-container">
+			<a href="/" class="back-link">← Back to Home</a>
+
+			<header class="header">
+				<img src="../logo.png" alt="Achievers logo" />
+			</header>
+
+			<!-- Student Info Form -->
+			<div id="studentForm" class="form-section">
+				<div class="form-group">
+					<label for="studentName">Your Name *</label>
+					<input
+						type="text"
+						id="studentName"
+						placeholder="Enter your name"
+						required
+						minlength="2"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="studentSection">Section (Optional)</label>
+					<select id="studentSection">
+						<option value="">-- Select Section --</option>
+						<option value="IT - A">IT - A</option>
+						<option value="IT - B">IT - B</option>
+					</select>
+					<small>Leave blank if not applicable</small>
+				</div>
+				<button
+					onclick="startQuiz()"
+					class="btn btn-primary"
+					style="width: 100%"
+				>
+					Start Quiz
+				</button>
+			</div>
+
+			<!-- Progress Bar -->
+			<div id="progressBar" class="progress-bar hidden">
+				<div class="progress-text" id="progressText">
+					Question 1 of 10
+				</div>
+				<div class="progress-track">
+					<div
+						class="progress-fill"
+						id="progressFill"
+						style="width: 0%"
+					></div>
+				</div>
+			</div>
+
+			<!-- Question Display -->
+			<div id="questionContainer" class="hidden"></div>
+
+			<!-- Results Display -->
+			<div id="resultsContainer" class="hidden"></div>
+
+			<!-- Loading/Error Messages -->
+			<div id="messageContainer"></div>
+		</div>
+
+		<script>
+			const quizId = parseInt("<%= quizId %>");
+			let questions = [];
+			let currentIndex = 0;
+			let answers = [];
+			let studentName = "";
+			let studentSection = "";
+			let quizStartTime = 0;
+			let questionStartTime = 0;
+
+			// Prevent accidental back navigation
+			window.addEventListener("beforeunload", e => {
+				if (currentIndex > 0 && currentIndex < questions.length) {
+					e.preventDefault();
+					e.returnValue = "";
+				}
+			});
+
+			async function startQuiz() {
+				const nameInput = document.getElementById("studentName");
+				const sectionInput = document.getElementById("studentSection");
+
+				studentName = nameInput.value.trim();
+				studentSection = sectionInput.value.trim();
+
+				if (studentName.length < 2) {
+					alert("Please enter your name (at least 2 characters)");
+					nameInput.focus();
+					return;
+				}
+
+				// Hide form
+				document.getElementById("studentForm").classList.add("hidden");
+
+				// Load questions
+				await loadQuestions();
+			}
+
+			async function loadQuestions() {
+				try {
+					showMessage("Loading questions...", "loading");
+
+					const response = await fetch(
+						`/api/quizzes/${quizId}/questions`
+					);
+
+					if (!response.ok) {
+						throw new Error("Failed to load quiz");
+					}
+
+					questions = await response.json();
+
+					if (questions.length === 0) {
+						showMessage(
+							"No questions available for this quiz.",
+							"error"
+						);
+						return;
+					}
+
+					// Get quiz title
+					const quizzesResponse = await fetch("/api/quizzes");
+					const quizzes = await quizzesResponse.json();
+					const quiz = quizzes.find(q => q.id === quizId);
+					if (quiz) {
+						document.getElementById("quizTitle").textContent =
+							quiz.title;
+					}
+
+					hideMessage();
+					quizStartTime = Date.now();
+					questionStartTime = Date.now();
+					showQuestion(0);
+				} catch (error) {
+					console.error("Error loading questions:", error);
+					showMessage(
+						"Failed to load quiz. Please try again.",
+						"error"
+					);
+				}
+			}
+
+			function showQuestion(index) {
+				currentIndex = index;
+				const question = questions[index];
+
+				// Update progress
+				document
+					.getElementById("progressBar")
+					.classList.remove("hidden");
+				document.getElementById(
+					"progressText"
+				).textContent = `Question ${index + 1} of ${questions.length}`;
+				document.getElementById("progressFill").style.width = `${
+					((index + 1) / questions.length) * 100
+				}%`;
+
+				// Render question
+				const container = document.getElementById("questionContainer");
+				container.classList.remove("hidden");
+				container.innerHTML = `
+					<div class="question-card">
+						<h2 class="question-text">${question.question_text}</h2>
+						<div class="options-container">
+							${question.options
+								.map(
+									(option, i) => `
+								<button 
+									class="option-btn" 
+									onclick="selectAnswer('${escapeHtml(option)}')"
+									id="option-${i}"
+								>
+									${option}
+								</button>
+							`
+								)
+								.join("")}
+						</div>
+					</div>
+				`;
+
+				// Reset question timer
+				questionStartTime = Date.now();
+			}
+
+			function selectAnswer(answer) {
+				const question = questions[currentIndex];
+				const duration = Date.now() - questionStartTime;
+
+				// Store answer
+				answers.push({
+					questionId: question.id,
+					answer: answer,
+					duration: duration,
+				});
+
+				// Visual feedback
+				const buttons = document.querySelectorAll(".option-btn");
+				buttons.forEach(btn => {
+					if (btn.textContent.trim() === answer) {
+						btn.classList.add("selected");
+					}
+					btn.disabled = true;
+				});
+
+				// Move to next question or submit
+				setTimeout(() => {
+					if (currentIndex < questions.length - 1) {
+						showQuestion(currentIndex + 1);
+					} else {
+						submitQuiz();
+					}
+				}, 300);
+			}
+
+			async function submitQuiz() {
+				try {
+					showMessage("Submitting your answers...", "loading");
+
+					const totalDuration = Date.now() - quizStartTime;
+
+					const response = await fetch("/api/submit-quiz", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							quizId: quizId,
+							studentName: studentName,
+							section: studentSection || undefined,
+							answers: answers,
+							duration: totalDuration,
+						}),
+					});
+
+					const result = await response.json();
+
+					if (!response.ok) {
+						throw new Error(result.error || "Submission failed");
+					}
+
+					hideMessage();
+					showResults(result);
+				} catch (error) {
+					console.error("Error submitting quiz:", error);
+					showMessage(`Submission failed: ${error.message}`, "error");
+				}
+			}
+
+			function showResults(result) {
+				// Hide question container and progress
+				document
+					.getElementById("questionContainer")
+					.classList.add("hidden");
+				document.getElementById("progressBar").classList.add("hidden");
+
+				// Show results
+				const container = document.getElementById("resultsContainer");
+				container.classList.remove("hidden");
+
+				const percentage = Math.round(
+					(result.correctCount / result.questionsAnswered) * 100
+				);
+
+				container.innerHTML = `
+					<div class="results-card">
+						<h2>Quiz Complete! 🎉</h2>
+						<div class="score-display">${result.totalScore}</div>
+						<p style="color: var(--color-muted); margin-bottom: 1.5rem;">
+							Total Score
+						</p>
+
+						<div class="results-details">
+							<div class="result-stat">
+								<div class="result-stat-value" style="color: #27ae60;">
+									${result.correctCount}
+								</div>
+								<div class="result-stat-label">Correct</div>
+							</div>
+							<div class="result-stat">
+								<div class="result-stat-value" style="color: #e74c3c;">
+									${result.incorrectCount}
+								</div>
+								<div class="result-stat-label">Incorrect</div>
+							</div>
+							<div class="result-stat">
+								<div class="result-stat-value">
+									${percentage}%
+								</div>
+								<div class="result-stat-label">Accuracy</div>
+							</div>
+						</div>
+
+						<div style="margin-top: 2rem;">
+							<a href="/leaderboard/${quizId}" class="btn btn-secondary" style="margin-right: 0.5rem;">
+								View Leaderboard
+							</a>
+							<a href="/" class="btn btn-outline">
+								Back to Home
+							</a>
+						</div>
+					</div>
+				`;
+			}
+
+			function showMessage(message, type) {
+				const container = document.getElementById("messageContainer");
+				container.innerHTML = `<div class="${type}">${message}</div>`;
+			}
+
+			function hideMessage() {
+				document.getElementById("messageContainer").innerHTML = "";
+			}
+
+			function escapeHtml(text) {
+				const div = document.createElement("div");
+				div.textContent = text;
+				return div.innerHTML;
+			}
+		</script>
+	</body>
+</html>
