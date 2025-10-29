@@ -31,12 +31,12 @@ export const getQuestion = (req, res, next) => {
 
 /**
  * POST /api/submit - Submit single question answer
- * @param {object} req.body - { studentName, questionId, answer, duration }
+ * @param {object} req.body - { studentName, section, questionId, answer, duration }
  * @returns {object} - { correct, score, correctAnswer }
  */
 export const submitSingleAnswer = (req, res, next) => {
 	try {
-		const { studentName, questionId, answer, duration } = req.body;
+		const { studentName, section, questionId, answer, duration } = req.body;
 
 		// Validation
 		if (
@@ -72,6 +72,8 @@ export const submitSingleAnswer = (req, res, next) => {
 		// Trim inputs
 		const trimmedName = studentNameStr.trim();
 		const trimmedAnswer = answerStr.trim();
+		const trimmedSection =
+			section && typeof section === "string" ? section.trim() : null;
 
 		// Trimmed values aren't empty
 		if (!trimmedName || !trimmedAnswer) {
@@ -96,6 +98,13 @@ export const submitSingleAnswer = (req, res, next) => {
 		if (trimmedName.length > MAX_NAME_LENGTH) {
 			return res.status(400).json({
 				error: "Invalid student name",
+			});
+		}
+
+		// Validate section if provided
+		if (trimmedSection !== null && trimmedSection.length === 0) {
+			return res.status(400).json({
+				error: "Invalid section",
 			});
 		}
 
@@ -135,7 +144,7 @@ export const submitSingleAnswer = (req, res, next) => {
 		}
 
 		// Find and check if question is attempted
-		const student = findOrCreateStudent(trimmedName);
+		const student = findOrCreateStudent(trimmedName, trimmedSection);
 
 		if (hasAttemptedQuestion(student.id, questionId)) {
 			return res.status(400).json({

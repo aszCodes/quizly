@@ -59,11 +59,11 @@ export const getQuizQuestions = (req, res, next) => {
 
 /**
  * POST /api/submit-quiz - Submit quiz answers
- * body: { studentName, quizId, answers: [{questionId, answer, duration}], duration }
+ * body: { studentName, section, quizId, answers: [{questionId, answer, duration}], duration }
  */
 export const submitQuizAnswers = (req, res, next) => {
 	try {
-		const { studentName, quizId, answers, duration } = req.body;
+		const { studentName, section, quizId, answers, duration } = req.body;
 
 		// Basic presence
 		if (!studentName || !quizId || !Array.isArray(answers)) {
@@ -78,6 +78,16 @@ export const submitQuizAnswers = (req, res, next) => {
 		// Validate types
 		if (typeof studentName !== "string" || studentName.trim().length < 2) {
 			return res.status(400).json({ error: "Invalid student name" });
+		}
+
+		const trimmedSection =
+			section && typeof section === "string" ? section.trim() : null;
+
+		// Validate section if provided
+		if (trimmedSection !== null && trimmedSection.length === 0) {
+			return res.status(400).json({
+				error: "Invalid section",
+			});
 		}
 
 		// Validate top-level duration when provided
@@ -100,8 +110,6 @@ export const submitQuizAnswers = (req, res, next) => {
 		const quizQuestions = fetchQuizQuestions(quiz_id);
 		if (!quizQuestions || quizQuestions.length === 0) {
 			// If quiz doesn't exist or has no questions, tests expect "Quiz not found"
-			// but we earlier validated ID numeric; use getQuizById to be precise
-			const { getQuizById: _get } = {}; // noop placeholder to satisfy linter if needed
 			return res.status(404).json({ error: "Quiz not found" });
 		}
 
@@ -109,7 +117,7 @@ export const submitQuizAnswers = (req, res, next) => {
 		const questionsMap = new Map(quizQuestions.map(q => [q.id, q]));
 
 		// Find or create student
-		const student = findOrCreateStudent(studentName.trim());
+		const student = findOrCreateStudent(studentName.trim(), trimmedSection);
 
 		// Duplicate attempt check
 		if (hasAttemptedQuiz(student.id, quiz_id)) {
