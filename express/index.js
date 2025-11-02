@@ -10,8 +10,9 @@ import {
 import {
 	getQuizLeaderboard,
 	getActiveQuizzes,
-	getQuizQuestions,
-	submitQuizAnswers,
+	startQuizSession,
+	submitQuizAnswer,
+	getCurrentQuestion,
 } from "./controllers/data/quiz.js";
 import { getQuizById } from "../express/db/queries/quizzes.js";
 
@@ -95,8 +96,9 @@ app.post("/api/submit", submitSingleAnswer);
 
 // Quizzes
 app.get("/api/quizzes", getActiveQuizzes);
-app.get("/api/quizzes/:id/questions", getQuizQuestions);
-app.post("/api/submit-quiz", submitQuizAnswers);
+app.post("/api/quizzes/:id/start", startQuizSession);
+app.post("/api/quizzes/:id/answer", submitQuizAnswer);
+app.get("/api/quizzes/:id/current", getCurrentQuestion);
 
 // Leaderboards
 app.get("/api/leaderboard", getSingleLeaderboard);

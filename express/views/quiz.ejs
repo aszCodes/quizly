@@ -77,20 +77,29 @@
 
 		<script>
 			const quizId = parseInt("<%= quizId %>");
-			let questions = [];
+			let sessionToken = null;
+			let currentQuestion = null;
 			let currentIndex = 0;
-			let answers = [];
-			let studentName = "";
-			let studentSection = "";
-			let quizStartTime = 0;
-			let questionStartTime = 0;
+			let totalQuestions = 0;
 			let selectedAnswer = null;
+			let isSubmitting = false;
 
 			// Prevent accidental back navigation
 			window.addEventListener("beforeunload", e => {
-				if (currentIndex > 0 && currentIndex < questions.length) {
+				if (sessionToken && currentIndex < totalQuestions) {
 					e.preventDefault();
 					e.returnValue = "";
+				}
+			});
+
+			// Check for existing session on page load
+			window.addEventListener("DOMContentLoaded", () => {
+				const savedToken = sessionStorage.getItem(
+					`quiz_${quizId}_token`
+				);
+				if (savedToken) {
+					sessionToken = savedToken;
+					recoverSession();
 				}
 			});
 
@@ -98,8 +107,8 @@
 				const nameInput = document.getElementById("studentName");
 				const sectionInput = document.getElementById("studentSection");
 
-				studentName = nameInput.value.trim();
-				studentSection = sectionInput.value.trim();
+				const studentName = nameInput.value.trim();
+				const studentSection = sectionInput.value.trim();
 
 				if (studentName.length < 2) {
 					alert("Please enter your name (at least 2 characters)");
@@ -107,52 +116,101 @@
 					return;
 				}
 
-				// Hide form
-				document.getElementById("studentForm").classList.add("hidden");
-
-				// Load questions
-				await loadQuestions();
-			}
-
-			async function loadQuestions() {
 				try {
-					showMessage("Loading questions...", "loading");
+					showMessage("Starting quiz...", "loading");
 
 					const response = await fetch(
-						`/api/quizzes/${quizId}/questions`
+						`/api/quizzes/${quizId}/start`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								studentName,
+								section: studentSection || undefined,
+							}),
+						}
 					);
 
+					const data = await response.json();
+
 					if (!response.ok) {
-						throw new Error("Failed to load quiz");
+						throw new Error(data.error || "Failed to start quiz");
 					}
 
-					questions = await response.json();
+					// Save session token
+					sessionToken = data.sessionToken;
+					sessionStorage.setItem(
+						`quiz_${quizId}_token`,
+						sessionToken
+					);
 
-					if (questions.length === 0) {
-						showMessage(
-							"No questions available for this quiz.",
-							"error"
-						);
-						return;
-					}
-
+					// Hide form
+					document
+						.getElementById("studentForm")
+						.classList.add("hidden");
 					hideMessage();
-					quizStartTime = Date.now();
-					questionStartTime = Date.now();
-					showQuestion(0);
+
+					// Show first question
+					displayQuestion(
+						data.question,
+						data.currentIndex,
+						data.totalQuestions
+					);
 				} catch (error) {
-					console.error("Error loading questions:", error);
+					console.error("Error starting quiz:", error);
 					showMessage(
-						"Failed to load quiz. Please try again.",
+						`Failed to start quiz: ${error.message}`,
 						"error"
 					);
 				}
 			}
 
-			function showQuestion(index) {
+			async function recoverSession() {
+				try {
+					showMessage("Recovering your session...", "loading");
+
+					const response = await fetch(
+						`/api/quizzes/${quizId}/current?sessionToken=${sessionToken}`
+					);
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						// Session expired or invalid
+						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						sessionToken = null;
+						throw new Error(data.error || "Session expired");
+					}
+
+					// Hide form
+					document
+						.getElementById("studentForm")
+						.classList.add("hidden");
+					hideMessage();
+
+					// Show current question
+					displayQuestion(
+						data.question,
+						data.currentIndex,
+						data.totalQuestions
+					);
+				} catch (error) {
+					console.error("Error recovering session:", error);
+					showMessage(
+						`Session recovery failed: ${error.message}`,
+						"error"
+					);
+					sessionStorage.removeItem(`quiz_${quizId}_token`);
+					sessionToken = null;
+				}
+			}
+
+			function displayQuestion(question, index, total) {
+				currentQuestion = question;
 				currentIndex = index;
+				totalQuestions = total;
 				selectedAnswer = null;
-				const question = questions[index];
+				isSubmitting = false;
 
 				// Update progress
 				document
@@ -160,9 +218,9 @@
 					.classList.remove("hidden");
 				document.getElementById(
 					"progressText"
-				).textContent = `Question ${index + 1} of ${questions.length}`;
+				).textContent = `Question ${index + 1} of ${total}`;
 				document.getElementById("progressFill").style.width = `${
-					((index + 1) / questions.length) * 100
+					((index + 1) / total) * 100
 				}%`;
 
 				// Render question
@@ -172,14 +230,14 @@
 				const optionsHtml = question.options
 					.map((option, i) => {
 						const safeOption = escapeHtml(option);
-						const optionId = `option-${index}-${i}`;
+						const optionId = `option-${i}`;
 						return `
 							<div class="option-radio">
 								<input 
 									type="radio" 
 									name="answer" 
 									id="${optionId}"
-									data-option-index="${i}"
+									value="${escapeHtml(option)}"
 								/>
 								<label for="${optionId}">${safeOption}</label>
 							</div>
@@ -187,7 +245,7 @@
 					})
 					.join("");
 
-				const isLastQuestion = index === questions.length - 1;
+				const isLastQuestion = index === total - 1;
 				const buttonText = isLastQuestion ? "Submit Quiz" : "Next";
 
 				container.innerHTML = `
@@ -196,9 +254,9 @@
 						<div class="options-container">${optionsHtml}</div>
 						<div class="navigation-buttons">
 							<button 
-								id="nextBtn"
+								id="submitBtn"
 								class="btn btn-primary btn-next"
-								onclick="handleNext()"
+								onclick="submitAnswer()"
 								disabled
 							>
 								${buttonText}
@@ -213,73 +271,79 @@
 				);
 				radios.forEach(radio => {
 					radio.addEventListener("change", function () {
-						const optionIndex = parseInt(this.dataset.optionIndex);
-						selectedAnswer = question.options[optionIndex];
-						document.getElementById("nextBtn").disabled = false;
+						selectedAnswer = this.value;
+						document.getElementById("submitBtn").disabled = false;
 					});
 				});
-
-				// Reset question timer
-				questionStartTime = Date.now();
 			}
 
-			function handleNext() {
-				if (!selectedAnswer) {
-					alert("Please select an answer");
+			async function submitAnswer() {
+				if (!selectedAnswer || isSubmitting) {
 					return;
 				}
 
-				const question = questions[currentIndex];
-				const duration = Date.now() - questionStartTime;
+				isSubmitting = true;
+				const submitBtn = document.getElementById("submitBtn");
+				submitBtn.disabled = true;
+				submitBtn.textContent = "Submitting...";
 
-				// Store answer
-				answers.push({
-					questionId: question.id,
-					answer: selectedAnswer,
-					duration: duration,
-				});
+				// Disable all radio buttons
+				const radios = document.querySelectorAll('input[type="radio"]');
+				radios.forEach(radio => (radio.disabled = true));
 
-				// Move to next question or submit
-				if (currentIndex < questions.length - 1) {
-					showQuestion(currentIndex + 1);
-				} else {
-					submitQuiz();
-				}
-			}
-
-			async function submitQuiz() {
 				try {
-					showMessage("Submitting your answers...", "loading");
+					const response = await fetch(
+						`/api/quizzes/${quizId}/answer`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								sessionToken,
+								questionId: currentQuestion.id,
+								answer: selectedAnswer,
+							}),
+						}
+					);
 
-					const totalDuration = Date.now() - quizStartTime;
-
-					const response = await fetch("/api/submit-quiz", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							quizId: quizId,
-							studentName: studentName,
-							section: studentSection || undefined,
-							answers: answers,
-							duration: totalDuration,
-						}),
-					});
-
-					const result = await response.json();
+					const data = await response.json();
 
 					if (!response.ok) {
-						throw new Error(result.error || "Submission failed");
+						throw new Error(
+							data.error || "Failed to submit answer"
+						);
 					}
 
-					hideMessage();
-					showResults(result);
+					// Wait a moment before proceeding
+					await new Promise(resolve => setTimeout(resolve, 1500));
+
+					if (data.completed) {
+						// Quiz finished
+						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						showResults(data.results);
+					} else {
+						// Show next question
+						displayQuestion(
+							data.nextQuestion,
+							data.currentIndex,
+							data.totalQuestions
+						);
+					}
 				} catch (error) {
-					console.error("Error submitting quiz:", error);
+					console.error("Error submitting answer:", error);
 					showMessage(`Submission failed: ${error.message}`, "error");
+
+					// Re-enable form
+					isSubmitting = false;
+					submitBtn.disabled = false;
+					submitBtn.textContent =
+						currentIndex === totalQuestions - 1
+							? "Submit Quiz"
+							: "Next";
+					radios.forEach(radio => (radio.disabled = false));
 				}
 			}
 
-			function showResults(result) {
+			function showResults(results) {
 				// Hide question container and progress
 				document
 					.getElementById("questionContainer")
@@ -291,13 +355,13 @@
 				container.classList.remove("hidden");
 
 				const percentage = Math.round(
-					(result.correctCount / result.questionsAnswered) * 100
+					(results.correctCount / results.questionsAnswered) * 100
 				);
 
 				container.innerHTML = `
 					<div class="results-card">
 						<h2>Quiz Complete!</h2>
-						<div class="score-display">${result.totalScore}</div>
+						<div class="score-display">${results.totalScore}</div>
 						<p style="color: var(--color-muted); margin-bottom: 1.5rem;">
 							Total Score
 						</p>
@@ -305,13 +369,13 @@
 						<div class="results-details">
 							<div class="result-stat">
 								<div class="result-stat-value" style="color: #27ae60;">
-									${result.correctCount}
+									${results.correctCount}
 								</div>
 								<div class="result-stat-label">Correct</div>
 							</div>
 							<div class="result-stat">
 								<div class="result-stat-value" style="color: #e74c3c;">
-									${result.incorrectCount}
+									${results.incorrectCount}
 								</div>
 								<div class="result-stat-label">Incorrect</div>
 							</div>

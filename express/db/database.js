@@ -60,6 +60,36 @@ function initDB() {
 		)
 	`);
 
+	// Quiz Sessions table
+	db.exec(`
+		CREATE TABLE IF NOT EXISTS quiz_sessions (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_token TEXT UNIQUE NOT NULL,
+			student_id INTEGER NOT NULL,
+			quiz_id INTEGER NOT NULL,
+			question_order TEXT NOT NULL,
+			current_question_index INTEGER DEFAULT 0,
+			started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			expires_at DATETIME NOT NULL,
+			completed_at DATETIME,
+			FOREIGN KEY (student_id) REFERENCES students(id),
+			FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
+		)
+	`);
+
+	// Question Views table
+	db.exec(`
+		CREATE TABLE IF NOT EXISTS question_views (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_id INTEGER NOT NULL,
+			question_id INTEGER NOT NULL,
+			viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			answered_at DATETIME,
+			FOREIGN KEY (session_id) REFERENCES quiz_sessions(id),
+			FOREIGN KEY (question_id) REFERENCES questions(id)
+		)
+	`);
+
 	console.log("Database initialized");
 }
 

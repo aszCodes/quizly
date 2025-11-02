@@ -7,16 +7,18 @@ import {
 	getQuizById,
 } from "../../db/queries/quizzes.js";
 import { findOrCreateStudent } from "../../db/queries/students.js";
-
-// Helper to shuffle questions
-function shuffleArray(array) {
-	const shuffled = [...array]; // Create a copy
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-	}
-	return shuffled;
-}
+import {
+	createQuizSession,
+	getSessionByToken,
+	isSessionValid,
+	updateSessionQuestionIndex,
+	completeSession,
+	recordQuestionView,
+	recordQuestionAnswered,
+	getQuestionView,
+	validateAnswerTiming,
+} from "../../db/queries/session.js";
+import db from "../../db/database.js";
 
 /**
  * GET /api/quizzes - Get all active quizzes
@@ -38,104 +40,35 @@ export const getActiveQuizzes = (req, res, next) => {
 };
 
 /**
- * GET /api/quizzes/:id/questions - Get all questions for a quiz
+ * POST /api/quizzes/:id/start - Start a new quiz session
  *
- * @description Get all questions for a specific quiz
- * @param {string} req.params.id - Quiz ID
- * @returns {Array} Array of `{ id, question_text, options[] }`
- * @behavior
- * - Excludes `correct_answer`
- * - Validates quiz ID (numeric, positive)
- * - Returns 404 if quiz doesn't exist or has no questions
- * - Returns 400 for invalid IDs (non-numeric, zero, negative)
+ * @param {Object} req.body
+ * @param {string} req.body.studentName - Student name (min 2 chars)
+ * @param {string} [req.body.section] - Optional section
+ *
+ * @returns {Object} { sessionToken, question: { id, question_text, options }, totalQuestions, currentIndex }
  */
-export const getQuizQuestions = (req, res, next) => {
+export const startQuizSession = (req, res, next) => {
 	try {
+		const { studentName, section } = req.body;
 		const rawId = req.params.id;
 		const quiz_id = Number(rawId);
 
+		// Validate quiz ID
 		if (!rawId || isNaN(quiz_id) || quiz_id <= 0) {
 			return res.status(400).json({ error: "Invalid quiz ID" });
 		}
 
-		const quiz = getQuizById(quiz_id);
-		if (!quiz) {
-			return res.status(404).json({ error: "Quiz not found" });
-		}
-
-		const questions = fetchQuizQuestions(quiz_id);
-
-		if (!questions || questions.length === 0) {
-			return res.status(404).json({
-				error: "No questions found for this quiz",
-			});
-		}
-
-		const shuffledQuestions = shuffleArray(questions);
-
-		const questionsWithOptions = shuffledQuestions.map(q => ({
-			id: q.id,
-			question_text: q.question_text,
-			options: q.options,
-		}));
-
-		res.json(questionsWithOptions);
-	} catch (error) {
-		next(error);
-	}
-};
-
-/**
- * POST /api/submit-quiz - Submit quiz answers
- *
- * @description Submit answers for entire quiz
- * @param {Object} req.body - Request body
- * @param {number} req.body.quizId - Quiz ID
- * @param {string} req.body.studentName - Student name (minimum 2 characters)
- * @param {string} [req.body.section] - Optional section (trimmed, rejects whitespace-only)
- * @param {Array<Object>} req.body.answers - Array of answers
- * @param {number} req.body.answers[].questionId - Question ID
- * @param {string|number} req.body.answers[].answer - Student's answer
- * @param {number} [req.body.answers[].duration] - Time taken for this question
- * @param {number} [req.body.duration] - Default duration for all questions
- *
- * @returns {Object} `{ totalScore, correctCount, incorrectCount, results[], questionsAnswered }`
- *
- * @validation
- * - Student name: minimum 2 characters
- * - Section: optional, trimmed, rejects whitespace-only
- * - Answers: must be non-empty array
- * - Duration: positive number (per-answer or top-level)
- * - Quiz must exist and have questions
- *
- * @behavior
- * - Case-insensitive answer comparison
- * - Ignores invalid question IDs (not in quiz)
- * - Uses per-answer duration if provided, falls back to top-level
- * - Converts non-string answers to strings
- * - Prevents duplicate attempts (same student + quiz)
- * - Score: 1 points per correct answer
- */
-export const submitQuizAnswers = (req, res, next) => {
-	try {
-		const { studentName, section, quizId, answers, duration } = req.body;
-
-		// Basic presence
-		if (!studentName || !quizId || !Array.isArray(answers)) {
-			return res.status(400).json({ error: "Missing required fields" });
-		}
-
-		// Answers empty -> specific message expected by tests
-		if (Array.isArray(answers) && answers.length === 0) {
-			return res.status(400).json({ error: "No answers submitted" });
-		}
-
-		// Validate types
-		if (typeof studentName !== "string" || studentName.trim().length < 2) {
+		// Validate student name
+		if (
+			!studentName ||
+			typeof studentName !== "string" ||
+			studentName.trim().length < 2
+		) {
 			return res.status(400).json({ error: "Invalid student name" });
 		}
 
-		// Handle section: trim if string, convert empty string to null
+		// Handle section
 		let trimmedSection = null;
 		if (section !== undefined && section !== null) {
 			if (typeof section === "string") {
@@ -144,117 +77,286 @@ export const submitQuizAnswers = (req, res, next) => {
 			}
 		}
 
-		// Validate top-level duration when provided
-		if (duration !== undefined) {
-			if (
-				typeof duration !== "number" ||
-				isNaN(duration) ||
-				duration <= 0
-			) {
-				return res.status(400).json({ error: "Invalid duration" });
-			}
-		}
-
-		// Quiz existence
-		const quiz_id = Number(quizId);
-		if (isNaN(quiz_id) || quiz_id <= 0) {
-			return res.status(400).json({ error: "Invalid quiz ID" });
-		}
-
-		const quizQuestions = fetchQuizQuestions(quiz_id);
-		if (!quizQuestions || quizQuestions.length === 0) {
-			// If quiz doesn't exist or has no questions, tests expect "Quiz not found"
+		// Check if quiz exists
+		const quiz = getQuizById(quiz_id);
+		if (!quiz) {
 			return res.status(404).json({ error: "Quiz not found" });
 		}
 
-		// Build lookup map
-		const questionsMap = new Map(quizQuestions.map(q => [q.id, q]));
+		// Get questions for this quiz
+		const questions = fetchQuizQuestions(quiz_id);
+		if (!questions || questions.length === 0) {
+			return res
+				.status(404)
+				.json({ error: "No questions found for this quiz" });
+		}
 
-		// Find or create student with section
+		// Find or create student
 		const student = findOrCreateStudent(studentName.trim(), trimmedSection);
 
-		// Duplicate attempt check
+		// Check if already attempted
 		if (hasAttemptedQuiz(student.id, quiz_id)) {
 			return res
 				.status(400)
 				.json({ error: "You have already attempted this quiz" });
 		}
 
-		let totalScore = 0;
-		const results = [];
+		// Create session with shuffled questions
+		const question_ids = questions.map(q => q.id);
+		const session = createQuizSession(student.id, quiz_id, question_ids);
 
-		// For each answer — we allow missing per-answer duration; prefer per-answer duration then top-level duration then 0
-		for (const ans of answers) {
-			if (!ans || typeof ans !== "object") continue;
+		console.log("Session created:", {
+			token: session.session_token,
+			student_id: student.id,
+			quiz_id: quiz_id,
+			questions: session.question_order.length,
+		});
 
-			const questionId = Number(ans.questionId);
-			let ansValue = ans.answer;
-			const ansDuration =
-				ans.duration !== undefined
-					? ans.duration
-					: duration !== undefined
-					? duration
-					: 0;
+		// Get first question
+		const firstQuestionId = session.question_order[0];
+		const firstQuestion = questions.find(q => q.id === firstQuestionId);
 
-			if (!questionId || ansValue === undefined || ansValue === null) {
-				continue;
-			}
+		// Record that first question was viewed
+		recordQuestionView(session.id, firstQuestionId);
 
-			// Validate per-answer duration if provided
-			if (ans.duration !== undefined) {
-				if (
-					typeof ans.duration !== "number" ||
-					isNaN(ans.duration) ||
-					ans.duration <= 0
-				) {
-					// skip invalid per-answer durations rather than aborting whole submission
-					continue;
-				}
-			}
+		// Return session token and first question (without correct answer)
+		res.json({
+			sessionToken: session.session_token,
+			question: {
+				id: firstQuestion.id,
+				question_text: firstQuestion.question_text,
+				options: firstQuestion.options,
+			},
+			totalQuestions: session.question_order.length,
+			currentIndex: 0,
+		});
+	} catch (error) {
+		next(error);
+	}
+};
 
-			const question = questionsMap.get(questionId);
-			if (!question) {
-				// ignore answers for question IDs that don't belong to this quiz
-				continue;
-			}
+/**
+ * POST /api/quizzes/:id/answer - Submit answer for current question
+ *
+ * @param {Object} req.body
+ * @param {string} req.body.sessionToken - Session token
+ * @param {number} req.body.questionId - Question ID being answered
+ * @param {string} req.body.answer - Student's answer
+ *
+ * @returns {Object} Success: { correct, score, nextQuestion?, completed?, results? }
+ */
+export const submitQuizAnswer = (req, res, next) => {
+	try {
+		const { sessionToken, questionId, answer } = req.body;
+		const rawId = req.params.id;
+		const quiz_id = Number(rawId);
 
-			// Coerce answer to string for comparison
-			if (typeof ansValue !== "string") {
-				ansValue = String(ansValue);
-			}
-
-			const isCorrect =
-				ansValue.trim().toLowerCase() ===
-				question.correct_answer.trim().toLowerCase();
-			const score = isCorrect ? 1 : 0;
-			totalScore += score;
-
-			// persist attempt: duration value per attempt will be ans.duration if provided else top-level duration or 0
-			createQuizAttempt(
-				student.id,
-				quiz_id,
-				questionId,
-				ansValue,
-				score,
-				ansDuration
-			);
-
-			results.push({
-				questionId,
-				correct: isCorrect,
-				score,
-			});
+		// Validate inputs
+		if (
+			!sessionToken ||
+			!questionId ||
+			answer === undefined ||
+			answer === null
+		) {
+			return res.status(400).json({ error: "Missing required fields" });
 		}
 
-		const correctCount = results.filter(r => r.correct).length;
-		const incorrectCount = results.length - correctCount;
+		console.log("Attempting to submit answer:", {
+			sessionToken: sessionToken.substring(0, 10) + "...",
+			questionId,
+			answer,
+			quiz_id,
+		});
 
-		return res.json({
-			totalScore,
-			correctCount,
-			incorrectCount,
-			results,
-			questionsAnswered: results.length,
+		if (!rawId || isNaN(quiz_id) || quiz_id <= 0) {
+			return res.status(400).json({ error: "Invalid quiz ID" });
+		}
+
+		// Get session
+		const session = getSessionByToken(sessionToken);
+		console.log("Session found:", session ? "Yes" : "No");
+		if (!session) {
+			console.error("Session not found for token:", sessionToken);
+			return res.status(401).json({ error: "Invalid session token" });
+		}
+
+		// Validate session
+		if (!isSessionValid(session)) {
+			return res
+				.status(401)
+				.json({ error: "Session expired or completed" });
+		}
+
+		// Verify quiz ID matches
+		if (session.quiz_id !== quiz_id) {
+			return res.status(400).json({ error: "Quiz ID mismatch" });
+		}
+
+		// Get current question ID from session
+		const currentQuestionId =
+			session.question_order[session.current_question_index];
+
+		// Verify submitted question ID matches current question
+		if (questionId !== currentQuestionId) {
+			return res.status(400).json({ error: "Question ID mismatch" });
+		}
+
+		// Get question view record
+		const questionView = getQuestionView(session.id, questionId);
+		if (!questionView) {
+			return res.status(400).json({ error: "Question was not viewed" });
+		}
+
+		// Check if already answered
+		if (questionView.answered_at) {
+			return res.status(400).json({ error: "Question already answered" });
+		}
+
+		// Validate timing
+		const timingValidation = validateAnswerTiming(questionView.viewed_at);
+		if (!timingValidation.valid) {
+			return res.status(400).json({ error: timingValidation.reason });
+		}
+
+		// Calculate duration
+		const viewedAt = new Date(questionView.viewed_at);
+		const now = new Date();
+		const duration = now - viewedAt;
+
+		// Get all questions to check answer
+		const questions = fetchQuizQuestions(quiz_id);
+		const question = questions.find(q => q.id === questionId);
+
+		if (!question) {
+			return res.status(404).json({ error: "Question not found" });
+		}
+
+		// Convert answer to string for comparison
+		const answerStr = typeof answer === "string" ? answer : String(answer);
+
+		// Check if correct
+		const isCorrect =
+			answerStr.trim().toLowerCase() ===
+			question.correct_answer.trim().toLowerCase();
+		const score = isCorrect ? 1 : 0;
+
+		// Save attempt
+		createQuizAttempt(
+			session.student_id,
+			quiz_id,
+			questionId,
+			answerStr,
+			score,
+			duration
+		);
+
+		// Mark question as answered
+		recordQuestionAnswered(session.id, questionId);
+
+		// Check if this was the last question
+		const isLastQuestion =
+			session.current_question_index ===
+			session.question_order.length - 1;
+
+		if (isLastQuestion) {
+			// Mark session as completed
+			completeSession(session.id);
+
+			// Calculate final results
+			const results = calculateQuizResults(session.student_id, quiz_id);
+
+			return res.json({
+				correct: isCorrect,
+				score,
+				completed: true,
+				results,
+			});
+		} else {
+			// Move to next question
+			const nextIndex = session.current_question_index + 1;
+			updateSessionQuestionIndex(session.id, nextIndex);
+
+			const nextQuestionId = session.question_order[nextIndex];
+			const nextQuestion = questions.find(q => q.id === nextQuestionId);
+
+			// Record that next question was viewed
+			recordQuestionView(session.id, nextQuestionId);
+
+			return res.json({
+				correct: isCorrect,
+				score,
+				completed: false,
+				nextQuestion: {
+					id: nextQuestion.id,
+					question_text: nextQuestion.question_text,
+					options: nextQuestion.options,
+				},
+				currentIndex: nextIndex,
+				totalQuestions: session.question_order.length,
+			});
+		}
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * GET /api/quizzes/:id/current - Get current question for a session (for page refresh)
+ *
+ * @param {string} req.query.sessionToken - Session token
+ *
+ * @returns {Object} { question, currentIndex, totalQuestions }
+ */
+export const getCurrentQuestion = (req, res, next) => {
+	try {
+		const { sessionToken } = req.query;
+		const rawId = req.params.id;
+		const quiz_id = Number(rawId);
+
+		if (!sessionToken) {
+			return res.status(400).json({ error: "Missing session token" });
+		}
+
+		if (!rawId || isNaN(quiz_id) || quiz_id <= 0) {
+			return res.status(400).json({ error: "Invalid quiz ID" });
+		}
+
+		// Get session
+		const session = getSessionByToken(sessionToken);
+		if (!session) {
+			return res.status(401).json({ error: "Invalid session token" });
+		}
+
+		// Validate session
+		if (!isSessionValid(session)) {
+			return res
+				.status(401)
+				.json({ error: "Session expired or completed" });
+		}
+
+		// Verify quiz ID matches
+		if (session.quiz_id !== quiz_id) {
+			return res.status(400).json({ error: "Quiz ID mismatch" });
+		}
+
+		// Get current question
+		const currentQuestionId =
+			session.question_order[session.current_question_index];
+		const questions = fetchQuizQuestions(quiz_id);
+		const currentQuestion = questions.find(q => q.id === currentQuestionId);
+
+		if (!currentQuestion) {
+			return res.status(404).json({ error: "Question not found" });
+		}
+
+		res.json({
+			question: {
+				id: currentQuestion.id,
+				question_text: currentQuestion.question_text,
+				options: currentQuestion.options,
+			},
+			currentIndex: session.current_question_index,
+			totalQuestions: session.question_order.length,
 		});
 	} catch (error) {
 		next(error);
@@ -297,3 +399,35 @@ export const getQuizLeaderboard = (req, res, next) => {
 		next(error);
 	}
 };
+
+/**
+ * Helper: Calculate quiz results for a student
+ */
+function calculateQuizResults(student_id, quiz_id) {
+	// Get all attempts for this student and quiz
+	const studentAttempts = db
+		.prepare(
+			`
+			SELECT score, duration
+			FROM attempts
+			WHERE student_id = ? AND quiz_id = ?
+		`
+		)
+		.all(student_id, quiz_id);
+
+	const totalScore = studentAttempts.reduce((sum, a) => sum + a.score, 0);
+	const correctCount = studentAttempts.filter(a => a.score > 0).length;
+	const incorrectCount = studentAttempts.length - correctCount;
+	const totalDuration = studentAttempts.reduce(
+		(sum, a) => sum + a.duration,
+		0
+	);
+
+	return {
+		totalScore,
+		correctCount,
+		incorrectCount,
+		questionsAnswered: studentAttempts.length,
+		totalDuration,
+	};
+}
