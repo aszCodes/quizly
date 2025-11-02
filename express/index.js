@@ -118,7 +118,6 @@ app.get("/api/leaderboard", getSingleLeaderboard);
 app.get("/api/quizzes/:id/leaderboard", getQuizLeaderboard);
 
 // ERROR HANDLERS
-
 app.use(notFound);
 app.use(errorHandler);
 

@@ -1,19 +1,36 @@
 import db from "../db/database.js";
 
-// Helper functions for creating test data
-
 export const clearDatabase = () => {
-	db.exec("DELETE FROM attempts");
-	db.exec("DELETE FROM questions");
-	db.exec("DELETE FROM quizzes");
-	db.exec("DELETE FROM students");
+	db.pragma("foreign_keys = OFF");
+
+	const tables = [
+		"attempts",
+		"questions",
+		"quizzes",
+		"students",
+		"quiz_sessions",
+		"question_views",
+	];
+
+	for (const table of tables) db.exec(`DELETE FROM ${table}`);
+	db.exec("DELETE FROM sqlite_sequence");
+
+	db.pragma("foreign_keys = ON");
 };
 
-// Create test data helpers
+// --- Test data factories ---
+
 export const createTestStudent = (name = "Test Student", section = null) => {
 	const result = db
 		.prepare("INSERT INTO students (name, section) VALUES (?, ?)")
 		.run(name, section);
+	return result.lastInsertRowid;
+};
+
+export const createTestQuiz = ({ title = "Test Quiz", is_active = 1 } = {}) => {
+	const result = db
+		.prepare("INSERT INTO quizzes (title, is_active) VALUES (?, ?)")
+		.run(title, is_active);
 	return result.lastInsertRowid;
 };
 
@@ -26,7 +43,7 @@ export const createTestQuestion = ({
 } = {}) => {
 	const result = db
 		.prepare(
-			`INSERT INTO questions (question_text, correct_answer, options, quiz_id, is_active) 
+			`INSERT INTO questions (question_text, correct_answer, options, quiz_id, is_active)
 			 VALUES (?, ?, ?, ?, ?)`
 		)
 		.run(
@@ -36,12 +53,5 @@ export const createTestQuestion = ({
 			quiz_id,
 			is_active
 		);
-	return result.lastInsertRowid;
-};
-
-export const createTestQuiz = ({ title = "Test Quiz", is_active = 1 } = {}) => {
-	const result = db
-		.prepare("INSERT INTO quizzes (title, is_active) VALUES (?, ?)")
-		.run(title, is_active);
 	return result.lastInsertRowid;
 };
