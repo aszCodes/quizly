@@ -83,9 +83,6 @@ export const createQuizSession = (student_id, quiz_id, question_ids) => {
 			expires_at_iso
 		);
 
-	console.log("Session inserted with ID:", result.lastInsertRowid);
-	console.log("Session expiration:", expires_at_iso);
-
 	return {
 		id: Number(result.lastInsertRowid),
 		session_token,
@@ -105,11 +102,6 @@ export const createQuizSession = (student_id, quiz_id, question_ids) => {
  * @returns {QuizSession|undefined}
  */
 export const getSessionByToken = session_token => {
-	console.log(
-		"Looking up session with token:",
-		session_token.substring(0, 10) + "..."
-	);
-
 	const session = db
 		.prepare(
 			`
@@ -120,8 +112,6 @@ export const getSessionByToken = session_token => {
 	`
 		)
 		.get(session_token);
-
-	console.log("Session lookup result:", session ? "Found" : "Not found");
 
 	if (!session) return undefined;
 
@@ -143,26 +133,15 @@ export const getSessionByToken = session_token => {
  */
 export const isSessionValid = session => {
 	if (!session) {
-		console.log("Session validation failed: session is null/undefined");
 		return false;
 	}
 
 	if (session.completed_at) {
-		console.log(
-			"Session validation failed: already completed at",
-			session.completed_at
-		);
 		return false;
 	}
 
 	const now = new Date();
 	const expires = new Date(session.expires_at);
-
-	console.log("Session validation check:", {
-		now: now.toISOString(),
-		expires: expires.toISOString(),
-		isValid: now < expires,
-	});
 
 	return now < expires;
 };
@@ -210,12 +189,6 @@ export const recordQuestionView = (session_id, question_id) => {
 		VALUES (?, ?, ?)
 	`
 	).run(session_id, question_id, viewed_at);
-
-	console.log("Question view recorded:", {
-		session_id,
-		question_id,
-		viewed_at,
-	});
 };
 
 /**
@@ -260,15 +233,6 @@ export const validateAnswerTiming = viewed_at => {
 	const viewedTime = new Date(viewed_at);
 	const now = new Date();
 	const duration = now - viewedTime;
-
-	console.log("Timing validation:", {
-		viewed_at,
-		now: now.toISOString(),
-		duration_ms: duration,
-		duration_seconds: (duration / 1000).toFixed(1),
-		min_allowed: MIN_QUESTION_TIME_MS,
-		max_allowed: MAX_QUESTION_TIME_MS,
-	});
 
 	if (duration < MIN_QUESTION_TIME_MS) {
 		return {

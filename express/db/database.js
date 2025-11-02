@@ -90,7 +90,7 @@ function initDB() {
 		)
 	`);
 
-	console.log("Database initialized");
+	console.log("Database Initialized");
 }
 
 initDB();

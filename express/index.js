@@ -111,7 +111,7 @@ app.use(errorHandler);
 
 if (import.meta.main) {
 	app.listen(PORT, HOST, () => {
-		console.log(`running on http://${HOST}:${PORT}`);
+		console.log(`Running on http://${HOST}:${PORT}`);
 	});
 }
 

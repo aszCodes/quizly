@@ -105,13 +105,6 @@ export const startQuizSession = (req, res, next) => {
 		const question_ids = questions.map(q => q.id);
 		const session = createQuizSession(student.id, quiz_id, question_ids);
 
-		console.log("Session created:", {
-			token: session.session_token,
-			student_id: student.id,
-			quiz_id: quiz_id,
-			questions: session.question_order.length,
-		});
-
 		// Get first question
 		const firstQuestionId = session.question_order[0];
 		const firstQuestion = questions.find(q => q.id === firstQuestionId);
@@ -161,20 +154,13 @@ export const submitQuizAnswer = (req, res, next) => {
 			return res.status(400).json({ error: "Missing required fields" });
 		}
 
-		console.log("Attempting to submit answer:", {
-			sessionToken: sessionToken.substring(0, 10) + "...",
-			questionId,
-			answer,
-			quiz_id,
-		});
-
 		if (!rawId || isNaN(quiz_id) || quiz_id <= 0) {
 			return res.status(400).json({ error: "Invalid quiz ID" });
 		}
 
 		// Get session
 		const session = getSessionByToken(sessionToken);
-		console.log("Session found:", session ? "Yes" : "No");
+
 		if (!session) {
 			console.error("Session not found for token:", sessionToken);
 			return res.status(401).json({ error: "Invalid session token" });

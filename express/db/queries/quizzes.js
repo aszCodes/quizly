@@ -120,6 +120,7 @@ export const createQuizAttempt = (
 
 /**
  * Gets leaderboard for a quiz (aggregated scores per student)
+ * Limited to top 5 performers
  * Returns fields named as tests expect: student_name, score, duration, attempts
  */
 export const fetchQuizLeaderboard = quiz_id => {
@@ -137,6 +138,7 @@ export const fetchQuizLeaderboard = quiz_id => {
 			WHERE a.quiz_id = ?
 			GROUP BY a.student_id
 			ORDER BY score DESC, duration ASC
+			LIMIT 5
 			`
 		)
 		.all(quiz_id);

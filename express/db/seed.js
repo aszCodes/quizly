@@ -22,7 +22,6 @@ try {
 		.run("Java Basics (Week 3–4)", 1);
 
 	const quizId = javaQuiz.lastInsertRowid;
-	console.log(`Quiz created with ID: ${quizId}`);
 
 	// ============================================
 	// 🧩 Insert 20 Questions
@@ -175,12 +174,7 @@ try {
 		insertQuestion.run(text, answer, JSON.stringify(opts), quizId);
 	}
 
-	console.log(
-		`✅ Inserted ${questions.length} questions for Java Basics quiz`
-	);
-
-	console.log("\n✅ Database seeded successfully!");
-	console.log("➡️  Run your server and visit http://localhost:3000");
+	console.log("Database Seeded");
 } catch (error) {
 	console.error("❌ Error seeding database:", error);
 	process.exit(1);
