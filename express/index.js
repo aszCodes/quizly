@@ -14,6 +14,11 @@ import {
 	submitQuizAnswer,
 	getCurrentQuestion,
 } from "./controllers/data/quiz.js";
+import {
+	getWhitelistedStudents,
+	getWhitelistSections,
+	getWhitelistedStudentsBySection,
+} from "./controllers/data/whitelist.js";
 import { getQuizById } from "../express/db/queries/quizzes.js";
 
 const PORT = process.env.PORT || 3000;
@@ -89,6 +94,14 @@ app.get("/single-leaderboard", (req, res) => {
 });
 
 // API ROUTES
+
+// Whitelist endpoints
+app.get("/api/whitelist/students", getWhitelistedStudents);
+app.get("/api/whitelist/sections", getWhitelistSections);
+app.get(
+	"/api/whitelist/sections/:section/students",
+	getWhitelistedStudentsBySection
+);
 
 // Single Questions
 app.get("/api/question", getQuestion);

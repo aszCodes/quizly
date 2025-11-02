@@ -18,6 +18,7 @@ import {
 	getQuestionView,
 	validateAnswerTiming,
 } from "../../db/queries/session.js";
+import { isStudentWhitelisted } from "../../db/queries/whitelist.js";
 import db from "../../db/database.js";
 
 /**
@@ -68,6 +69,8 @@ export const startQuizSession = (req, res, next) => {
 			return res.status(400).json({ error: "Invalid student name" });
 		}
 
+		const trimmedName = studentName.trim();
+
 		// Handle section
 		let trimmedSection = null;
 		if (section !== undefined && section !== null) {
@@ -75,6 +78,22 @@ export const startQuizSession = (req, res, next) => {
 				const cleaned = section.trim();
 				trimmedSection = cleaned.length > 0 ? cleaned : null;
 			}
+		}
+
+		// Section is required
+		if (!trimmedSection) {
+			return res.status(400).json({ error: "Section is required" });
+		}
+
+		// Check if student is whitelisted
+		const whitelistedStudent = isStudentWhitelisted(
+			trimmedName,
+			trimmedSection
+		);
+		if (!whitelistedStudent) {
+			return res.status(403).json({
+				error: "Student not found in class roster. Please verify your name and section with your teacher.",
+			});
 		}
 
 		// Check if quiz exists
@@ -92,7 +111,7 @@ export const startQuizSession = (req, res, next) => {
 		}
 
 		// Find or create student
-		const student = findOrCreateStudent(studentName.trim(), trimmedSection);
+		const student = findOrCreateStudent(trimmedName, trimmedSection);
 
 		// Check if already attempted
 		if (hasAttemptedQuiz(student.id, quiz_id)) {

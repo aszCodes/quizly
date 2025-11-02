@@ -7,9 +7,35 @@
 		<link rel="stylesheet" href="../style.css" />
 		<link rel="shortcut icon" href="../logo.png" type="image/x-icon" />
 		<style>
-			/* Prevent accidental navigation */
 			body {
 				overscroll-behavior: contain;
+			}
+			.warning-message {
+				background: #fff3cd;
+				border: 1px solid #ffc107;
+				color: #856404;
+				padding: 1rem;
+				border-radius: var(--radius);
+				margin-bottom: 1.5rem;
+				font-size: 0.9rem;
+			}
+			.warning-message strong {
+				display: block;
+				margin-bottom: 0.5rem;
+			}
+			select {
+				width: 100%;
+				padding: 0.75rem;
+				border: 1px solid #ddd;
+				border-radius: var(--radius);
+				font-size: 1rem;
+				background: white;
+				cursor: pointer;
+			}
+			select:focus {
+				outline: none;
+				border-color: var(--color-primary);
+				box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 			}
 		</style>
 	</head>
@@ -23,29 +49,35 @@
 
 			<!-- Student Info Form -->
 			<div id="studentForm" class="form-section">
+				<div class="warning-message">
+					<strong>Important:</strong>
+					Select your name from the list. If your name is not listed,
+					contact your teacher.
+				</div>
+
+				<div class="form-group">
+					<label for="studentSection">Section *</label>
+					<select id="studentSection" required>
+						<option value="">-- Select Section --</option>
+					</select>
+				</div>
+
 				<div class="form-group">
 					<label for="studentName">Your Name *</label>
-					<input
-						type="text"
-						id="studentName"
-						placeholder="Enter your name"
-						required
-						minlength="2"
-					/>
-				</div>
-				<div class="form-group">
-					<label for="studentSection">Section (Optional)</label>
-					<select id="studentSection">
-						<option value="">-- Select Section --</option>
-						<option value="IT - A">IT - A</option>
-						<option value="IT - B">IT - B</option>
+					<select id="studentName" required disabled>
+						<option value="">-- Select Section First --</option>
 					</select>
-					<small>Leave blank if not applicable</small>
+					<small
+						>Select your section first to see available names</small
+					>
 				</div>
+
 				<button
 					onclick="startQuiz()"
 					class="btn btn-primary"
 					style="width: 100%"
+					id="startBtn"
+					disabled
 				>
 					Start Quiz
 				</button>
@@ -83,6 +115,7 @@
 			let totalQuestions = 0;
 			let selectedAnswer = null;
 			let isSubmitting = false;
+			let whitelistedStudents = [];
 
 			// Prevent accidental back navigation
 			window.addEventListener("beforeunload", e => {
@@ -92,27 +125,103 @@
 				}
 			});
 
-			// Check for existing session on page load
-			window.addEventListener("DOMContentLoaded", () => {
+			// Load sections and students on page load
+			window.addEventListener("DOMContentLoaded", async () => {
+				// Check for existing session
 				const savedToken = sessionStorage.getItem(
 					`quiz_${quizId}_token`
 				);
 				if (savedToken) {
 					sessionToken = savedToken;
 					recoverSession();
+					return;
 				}
+
+				// Load sections
+				await loadSections();
 			});
 
+			async function loadSections() {
+				try {
+					const response = await fetch("/api/whitelist/sections");
+					const sections = await response.json();
+
+					const sectionSelect =
+						document.getElementById("studentSection");
+					sectionSelect.innerHTML =
+						'<option value="">-- Select Section --</option>';
+
+					sections.forEach(section => {
+						const option = document.createElement("option");
+						option.value = section;
+						option.textContent = section;
+						sectionSelect.appendChild(option);
+					});
+
+					// Add event listener for section change
+					sectionSelect.addEventListener(
+						"change",
+						loadStudentsForSection
+					);
+				} catch (error) {
+					console.error("Error loading sections:", error);
+					showMessage("Failed to load sections", "error");
+				}
+			}
+
+			async function loadStudentsForSection() {
+				const sectionSelect = document.getElementById("studentSection");
+				const nameSelect = document.getElementById("studentName");
+				const startBtn = document.getElementById("startBtn");
+				const section = sectionSelect.value;
+
+				if (!section) {
+					nameSelect.innerHTML =
+						'<option value="">-- Select Section First --</option>';
+					nameSelect.disabled = true;
+					startBtn.disabled = true;
+					return;
+				}
+
+				try {
+					const response = await fetch(
+						`/api/whitelist/sections/${encodeURIComponent(
+							section
+						)}/students`
+					);
+					whitelistedStudents = await response.json();
+
+					nameSelect.innerHTML =
+						'<option value="">-- Select Your Name --</option>';
+
+					whitelistedStudents.forEach(student => {
+						const option = document.createElement("option");
+						option.value = student.name;
+						option.textContent = student.name;
+						nameSelect.appendChild(option);
+					});
+
+					nameSelect.disabled = false;
+
+					// Enable start button when name is selected
+					nameSelect.addEventListener("change", () => {
+						startBtn.disabled = !nameSelect.value;
+					});
+				} catch (error) {
+					console.error("Error loading students:", error);
+					showMessage("Failed to load students", "error");
+				}
+			}
+
 			async function startQuiz() {
-				const nameInput = document.getElementById("studentName");
-				const sectionInput = document.getElementById("studentSection");
+				const nameSelect = document.getElementById("studentName");
+				const sectionSelect = document.getElementById("studentSection");
 
-				const studentName = nameInput.value.trim();
-				const studentSection = sectionInput.value.trim();
+				const studentName = nameSelect.value;
+				const studentSection = sectionSelect.value;
 
-				if (studentName.length < 2) {
-					alert("Please enter your name (at least 2 characters)");
-					nameInput.focus();
+				if (!studentName || !studentSection) {
+					alert("Please select both section and name");
 					return;
 				}
 
@@ -126,7 +235,7 @@
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({
 								studentName,
-								section: studentSection || undefined,
+								section: studentSection,
 							}),
 						}
 					);
@@ -202,6 +311,7 @@
 					);
 					sessionStorage.removeItem(`quiz_${quizId}_token`);
 					sessionToken = null;
+					await loadSections();
 				}
 			}
 

@@ -6,6 +6,7 @@ import {
 	hasAttemptedQuestion,
 } from "../../db/queries/questions.js";
 import { findOrCreateStudent } from "../../db/queries/students.js";
+import { isStudentWhitelisted } from "../../db/queries/whitelist.js";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 255;
@@ -135,6 +136,24 @@ export const submitSingleAnswer = (req, res, next) => {
 			});
 		}
 
+		// Section is now REQUIRED
+		if (!trimmedSection) {
+			return res.status(400).json({
+				error: "Section is required",
+			});
+		}
+
+		// Check if student is whitelisted
+		const whitelistedStudent = isStudentWhitelisted(
+			trimmedName,
+			trimmedSection
+		);
+		if (!whitelistedStudent) {
+			return res.status(403).json({
+				error: "Student not found in class roster. Please verify your name and section with your teacher.",
+			});
+		}
+
 		// Validate duration
 		if (typeof duration !== "number" || isNaN(duration)) {
 			return res.status(400).json({
@@ -205,7 +224,7 @@ export const submitSingleAnswer = (req, res, next) => {
 };
 
 /**
- * GET /api/leaderboard - Get single question leaderboard
+ * GET /api/leaderboard - Get single question leaderboard LIMIT TO 5
  *
  * @description Get leaderboard for all single questions
  * @returns {Array} Array of `{ student_name, score, duration, created_at }`
