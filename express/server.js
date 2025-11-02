@@ -19,7 +19,7 @@ import {
 	getWhitelistSections,
 	getWhitelistedStudentsBySection,
 } from "./controllers/data/whitelist.js";
-import { getQuizById } from "../express/db/queries/quizzes.js";
+import { getQuizById } from "./db/queries/quizzes.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
