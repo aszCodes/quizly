@@ -90,6 +90,18 @@ function initDB() {
 		)
 	`);
 
+	// Initialize whitelisted students
+	db.exec(`
+		CREATE TABLE IF NOT EXISTS student_whitelist (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			section TEXT NOT NULL,
+			is_active INTEGER DEFAULT 1,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(name, section)
+		)
+	`);
+
 	console.log("Database Initialized");
 }
 

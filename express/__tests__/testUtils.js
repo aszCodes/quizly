@@ -10,6 +10,7 @@ export const clearDatabase = () => {
 		"students",
 		"quiz_sessions",
 		"question_views",
+		"student_whitelist",
 	];
 
 	for (const table of tables) db.exec(`DELETE FROM ${table}`);
@@ -54,4 +55,32 @@ export const createTestQuestion = ({
 			is_active
 		);
 	return result.lastInsertRowid;
+};
+
+export const addTestStudentToWhitelist = (
+	name = "Test Student",
+	section = "IT - A"
+) => {
+	try {
+		const result = db
+			.prepare(
+				"INSERT OR IGNORE INTO student_whitelist (name, section) VALUES (?, ?)"
+			)
+			.run(name, section);
+		return (
+			result.lastInsertRowid ||
+			db
+				.prepare(
+					"SELECT id FROM student_whitelist WHERE name = ? AND section = ?"
+				)
+				.get(name, section)?.id
+		);
+	} catch (error) {
+		// If already exists, just return the existing ID
+		return db
+			.prepare(
+				"SELECT id FROM student_whitelist WHERE name = ? AND section = ?"
+			)
+			.get(name, section)?.id;
+	}
 };

@@ -268,3 +268,22 @@ export const cleanupExpiredSessions = () => {
 
 	return result.changes;
 };
+
+/**
+ * Check if student has an active or completed session for a quiz
+ * @param {number} student_id
+ * @param {number} quiz_id
+ * @returns {boolean}
+ */
+export const hasQuizSession = (student_id, quiz_id) => {
+	const session = db
+		.prepare(
+			`
+		SELECT id FROM quiz_sessions 
+		WHERE student_id = ? AND quiz_id = ?
+		LIMIT 1`
+		)
+		.get(student_id, quiz_id);
+
+	return !!session;
+};

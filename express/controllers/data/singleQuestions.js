@@ -10,18 +10,40 @@ import { isStudentWhitelisted } from "../../db/queries/whitelist.js";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 255;
-const MAX_DURATION = 3600000;
+const MAX_DURATION = 3600000; // 1 hour in milliseconds
 
 /**
  * GET /api/question - Get active single question
  *
- * @description Fetch the currently active single question (not part of any quiz)
- * @returns {Object} `{ id, question_text, options[] }`
+ * @description Fetch the currently active standalone question (not part of any quiz)
+ *
+ * @returns {Object} Question object (without correct_answer)
+ * @returns {number} .id - Question ID
+ * @returns {string} .question_text - The question text
+ * @returns {Array<string>} .options - Array of answer options
  *
  * @behavior
- * - Excludes `correct_answer`
- * - Returns 404 if no active question exists
- * - Excludes quiz-linked questions
+ * - Returns only questions where `is_active = 1` AND `quiz_id IS NULL`
+ * - Excludes `correct_answer` field from response (security)
+ * - Returns first matching question (LIMIT 1)
+ * - Quiz-linked questions are never returned
+ * - Returns 404 if no active standalone question exists
+ *
+ * @errors
+ * - 404: No active question found
+ *
+ * @example
+ * // Success Response (200):
+ * {
+ *   "id": 42,
+ *   "question_text": "What is the capital of France?",
+ *   "options": ["London", "Berlin", "Paris", "Madrid"]
+ * }
+ *
+ * // No Active Question (404):
+ * {
+ *   "error": "No active question found"
+ * }
  */
 export const getQuestion = (req, res, next) => {
 	try {
@@ -41,26 +63,85 @@ export const getQuestion = (req, res, next) => {
 /**
  * POST /api/submit - Submit single question answer
  *
- * @description Submit answer for a single question
- * @param {Object} req.body - Request body
- * @param {string} req.body.studentName - Student name (2-255 characters, trimmed)
- * @param {string} [req.body.section] - Optional section (trimmed, null if empty)
- * @param {number} req.body.questionId - Question ID
- * @param {string|number} req.body.answer - Student's answer (case-insensitive comparison, trimmed)
- * @param {number} req.body.duration - Time taken (positive number, max 3,600,000ms / 1 hour)
+ * @description Submit answer for a standalone question and receive immediate feedback
  *
- * @returns {Object} `{ correct, score, correct_answer }`
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.studentName - Student's full name (2-255 chars, trimmed)
+ * @param {string} req.body.section - Student's section (required, trimmed)
+ * @param {number} req.body.questionId - Question ID being answered
+ * @param {string|number} req.body.answer - Student's answer (case-insensitive)
+ * @param {number} req.body.duration - Time taken in milliseconds (1-3,600,000ms)
+ *
+ * @returns {Object} Answer result with feedback
+ * @returns {boolean} .correct - Whether the answer was correct
+ * @returns {number} .score - Points earned (10 if correct, 0 if incorrect)
+ * @returns {string} .correct_answer - The correct answer (always shown after submission)
  *
  * @validation
- * - Student name: 2-255 characters, trimmed
- * - Duration: positive number, max 3,600,000ms (1 hour)
- * - Answer: case-insensitive comparison, trimmed
- * - Section: optional, trimmed, null if empty
+ * - All fields required (studentName, section, questionId, answer, duration)
+ * - Student name: 2-255 characters after trimming, string type
+ * - Section: Must be non-empty after trimming
+ * - Question ID: Positive integer
+ * - Answer: Non-empty after trimming, converted to string
+ * - Duration: Positive number, maximum 3,600,000ms (1 hour)
+ * - Student must exist in whitelist (case-insensitive name/section match)
+ * - Question must exist and be standalone (quiz_id IS NULL)
+ * - Student must not have previously attempted this question
  *
  * @behavior
- * - Score: 10 points if correct, 0 if incorrect
+ * - Finds existing student or creates new student record
+ * - Answer comparison: case-insensitive, trimmed both sides
+ * - Score: 10 points for correct answer, 0 for incorrect
+ * - Creates attempt record with: student_id, question_id, answer, score, duration
  * - Prevents duplicate attempts (same student + question)
- * - Rejects quiz-linked questions
+ * - Rejects attempts on quiz-linked questions
+ * - Returns correct answer regardless of student's answer
+ *
+ * @errors
+ * - 400: Missing required fields
+ * - 400: Invalid question ID (not a positive number)
+ * - 400: Invalid student name (wrong type, too short/long, or empty after trim)
+ * - 400: Section is required (missing or empty after trim)
+ * - 400: Invalid duration (not a number, negative, zero, or > 1 hour)
+ * - 400: Question is part of a quiz (use quiz submission endpoint)
+ * - 400: You have already attempted this question
+ * - 403: Student not in whitelist (returns roster verification message)
+ * - 404: Question not found
+ *
+ * @example
+ * // Request:
+ * POST /api/submit
+ * {
+ *   "studentName": "Juan Dela Cruz",
+ *   "section": "IT - A",
+ *   "questionId": 42,
+ *   "answer": "Paris",
+ *   "duration": 8500
+ * }
+ *
+ * // Success Response - Correct (200):
+ * {
+ *   "correct": true,
+ *   "score": 10,
+ *   "correct_answer": "Paris"
+ * }
+ *
+ * // Success Response - Incorrect (200):
+ * {
+ *   "correct": false,
+ *   "score": 0,
+ *   "correct_answer": "Paris"
+ * }
+ *
+ * // Whitelist Error (403):
+ * {
+ *   "error": "Student not found in class roster. Please verify your name and section with your teacher."
+ * }
+ *
+ * // Duplicate Attempt (400):
+ * {
+ *   "error": "You have already attempted this question"
+ * }
  */
 export const submitSingleAnswer = (req, res, next) => {
 	try {
@@ -224,14 +305,57 @@ export const submitSingleAnswer = (req, res, next) => {
 };
 
 /**
- * GET /api/leaderboard - Get single question leaderboard LIMIT TO 5
+ * GET /api/leaderboard - Get single question leaderboard
  *
- * @description Get leaderboard for all single questions
- * @returns {Array} Array of `{ student_name, score, duration, created_at }`
+ * @description Retrieve all attempts for standalone questions, ranked by performance
+ *
+ * @returns {Array<Object>} Leaderboard entries (all attempts, not limited)
+ * @returns {number} [].id - Attempt ID
+ * @returns {string} [].student_name - Student's full name
+ * @returns {string} [].student_answer - The answer submitted
+ * @returns {number} [].score - Score earned (10 or 0)
+ * @returns {number} [].duration - Time taken in milliseconds
+ * @returns {string} [].created_at - ISO timestamp of submission
  *
  * @behavior
- * - Sorted by: score DESC, then duration ASC
- * - Excludes quiz attempts
+ * - Returns all attempts for standalone questions (where quiz_id IS NULL)
+ * - Sorted by: score DESC (highest first), then duration ASC (fastest first)
+ * - Includes all attempts, not just unique students (students can appear multiple times)
+ * - Returns empty array if no attempts exist
+ * - No pagination (returns all results)
+ * - Excludes quiz attempts entirely
+ *
+ * @example
+ * // Success Response (200):
+ * [
+ *   {
+ *     "id": 123,
+ *     "student_name": "Maria Santos",
+ *     "student_answer": "Paris",
+ *     "score": 10,
+ *     "duration": 5200,
+ *     "created_at": "2025-01-15T10:30:45.000Z"
+ *   },
+ *   {
+ *     "id": 124,
+ *     "student_name": "Juan Dela Cruz",
+ *     "student_answer": "Paris",
+ *     "score": 10,
+ *     "duration": 6800,
+ *     "created_at": "2025-01-15T10:32:10.000Z"
+ *   },
+ *   {
+ *     "id": 125,
+ *     "student_name": "Pedro Garcia",
+ *     "student_answer": "London",
+ *     "score": 0,
+ *     "duration": 4500,
+ *     "created_at": "2025-01-15T10:33:22.000Z"
+ *   }
+ * ]
+ *
+ * // No Attempts (200):
+ * []
  */
 export const getSingleLeaderboard = (req, res, next) => {
 	try {

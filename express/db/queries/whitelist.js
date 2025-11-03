@@ -11,22 +11,6 @@ import db from "../database.js";
  */
 
 /**
- * Initialize whitelist table
- */
-export function initWhitelistTable() {
-	db.exec(`
-		CREATE TABLE IF NOT EXISTS student_whitelist (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL,
-			section TEXT NOT NULL,
-			is_active INTEGER DEFAULT 1,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			UNIQUE(name, section)
-		)
-	`);
-}
-
-/**
  * Check if a student is whitelisted (case-insensitive)
  * @param {string} name
  * @param {string} section
