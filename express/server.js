@@ -6,20 +6,20 @@ import {
 	getQuestion,
 	getSingleLeaderboard,
 	submitSingleAnswer,
-} from "./controllers/data/singleQuestions.js";
+} from "./controllers/question.controller.js";
 import {
 	getQuizLeaderboard,
 	getActiveQuizzes,
 	startQuizSession,
 	submitQuizAnswer,
 	getCurrentQuestion,
-} from "./controllers/data/quiz.js";
+} from "./controllers/quiz.controller.js";
 import {
 	getWhitelistedStudents,
 	getWhitelistSections,
 	getWhitelistedStudentsBySection,
-} from "./controllers/data/whitelist.js";
-import { getQuizById } from "./repositories/quizzes.repository.js";
+} from "./controllers/whitelist.controller.js";
+import { findQuizById } from "./repositories/quiz.repository.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -56,7 +56,7 @@ app.get("/quiz/:id", (req, res, next) => {
 	}
 
 	// Check if quiz exists
-	const quiz = getQuizById(quizId);
+	const quiz = findQuizById(quizId);
 	if (!quiz) {
 		return next();
 	}

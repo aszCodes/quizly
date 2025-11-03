@@ -4,9 +4,9 @@ import {
 	fetchSingleQuestionLeaderboard,
 	createSingleAttempt,
 	hasAttemptedQuestion,
-} from "../../repositories/questions.repository.js";
-import { findOrCreateStudent } from "../../repositories/students.repository.js";
-import { isStudentWhitelisted } from "../../repositories/whitelist.repository.js";
+} from "../repositories/question.repository.js";
+import { findOrCreateStudent } from "../repositories/students.repository.js";
+import { isStudentWhitelisted } from "../repositories/whitelist.repository.js";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 255;

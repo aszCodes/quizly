@@ -1,4 +1,3 @@
-// express/db/seedWhitelist.js
 import { addMultipleStudentsToWhitelist } from "../repositories/whitelist.repository.js";
 
 console.log("Seeding student whitelist...");

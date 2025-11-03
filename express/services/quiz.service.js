@@ -1,7 +1,7 @@
-import * as quizRepo from "../db/repositories/quizRepository.js";
-import * as studentRepo from "../db/repositories/studentRepository.js";
-import * as whitelistRepo from "../db/repositories/whitelistRepository.js";
-import * as sessionRepo from "../db/repositories/sessionRepository.js";
+import * as quizRepo from "../repositories/quiz.repository.js";
+import * as studentRepo from "../repositories/students.repository.js";
+import * as whitelistRepo from "../repositories/whitelist.repository.js";
+import * as sessionRepo from "../repositories/session.repository.js";
 
 // Custom error classes
 class ValidationError extends Error {

@@ -1,9 +1,8 @@
-// express/controllers/data/whitelist.js
 import {
 	getAllWhitelistedStudents,
 	getWhitelistedStudentsBySection as fetchWhitelistedStudentsBySection,
 	getAllSections,
-} from "../../repositories/whitelist.repository.js";
+} from "../repositories/whitelist.repository.js";
 
 /**
  * GET /api/whitelist/students - Get all whitelisted students
