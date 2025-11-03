@@ -37,6 +37,99 @@
 				border-color: var(--color-primary);
 				box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 			}
+
+			/* Session Info Styles */
+			.session-info {
+				background: var(--color-card-bg);
+				border-radius: var(--radius);
+				box-shadow: 0 2px 6px var(--color-shadow);
+				padding: 1.5rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.session-info-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 1rem;
+			}
+
+			.session-info-header h3 {
+				font-size: 1.1rem;
+				color: var(--color-heading);
+				font-weight: 600;
+			}
+
+			.session-info-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1rem;
+			}
+
+			.session-info-item {
+				background: #f8f9fa;
+				border: 1px solid #eee;
+				border-radius: 8px;
+				padding: 0.75rem 1rem;
+			}
+
+			.session-info-label {
+				font-size: 0.8rem;
+				color: var(--color-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.4px;
+				margin-bottom: 0.25rem;
+			}
+
+			.session-info-value {
+				font-size: 1rem;
+				color: var(--color-heading);
+				font-weight: 600;
+				word-break: break-word;
+			}
+
+			/* Timer */
+			.session-timer {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-family: monospace;
+			}
+
+			.timer-warning {
+				color: var(--color-error);
+				font-weight: 700;
+				animation: pulse 1s ease-in-out infinite;
+			}
+
+			@keyframes pulse {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.6;
+				}
+			}
+
+			/* Session expired notice */
+			.session-expired-notice {
+				background: #fff5f5;
+				border: 2px solid #f5c2c2;
+				color: var(--color-error);
+				padding: 1.25rem;
+				border-radius: var(--radius);
+				margin-bottom: 1.5rem;
+				text-align: center;
+				font-weight: 600;
+				box-shadow: 0 2px 6px var(--color-shadow);
+			}
+
+			.session-expired-notice p {
+				margin-top: 0.5rem;
+				font-weight: normal;
+				color: var(--color-muted);
+			}
 		</style>
 	</head>
 	<body>
@@ -83,6 +176,41 @@
 				</button>
 			</div>
 
+			<!-- Session Information -->
+			<div id="sessionInfo" class="session-info hidden">
+				<div class="session-info-header">
+					<h3>Session Details</h3>
+					<div class="session-timer">
+						<span id="sessionTimer">30:00</span>
+					</div>
+				</div>
+
+				<div class="session-info-grid">
+					<div class="session-info-item">
+						<div class="session-info-label">Student</div>
+						<div class="session-info-value" id="sessionStudent">
+							-
+						</div>
+					</div>
+					<div class="session-info-item">
+						<div class="session-info-label">Section</div>
+						<div class="session-info-value" id="sessionSection">
+							-
+						</div>
+					</div>
+					<div class="session-info-item">
+						<div class="session-info-label">Session Token</div>
+						<div
+							class="session-info-value"
+							id="sessionToken"
+							style="font-size: 0.8rem; font-family: monospace"
+						>
+							-
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<!-- Progress Bar -->
 			<div id="progressBar" class="progress-bar hidden">
 				<div class="progress-text" id="progressText">
@@ -116,6 +244,13 @@
 			let selectedAnswer = null;
 			let isSubmitting = false;
 			let whitelistedStudents = [];
+			let sessionData = {
+				studentName: null,
+				section: null,
+				startedAt: null,
+				expiresAt: null,
+			};
+			let timerInterval = null;
 
 			// Prevent accidental back navigation
 			window.addEventListener("beforeunload", e => {
@@ -131,8 +266,13 @@
 				const savedToken = sessionStorage.getItem(
 					`quiz_${quizId}_token`
 				);
-				if (savedToken) {
+				const savedSessionData = sessionStorage.getItem(
+					`quiz_${quizId}_sessionData`
+				);
+
+				if (savedToken && savedSessionData) {
 					sessionToken = savedToken;
+					sessionData = JSON.parse(savedSessionData);
 					recoverSession();
 					return;
 				}
@@ -246,17 +386,30 @@
 						throw new Error(data.error || "Failed to start quiz");
 					}
 
-					// Save session token
+					// Save session data
 					sessionToken = data.sessionToken;
+					sessionData.studentName = studentName;
+					sessionData.section = studentSection;
+					sessionData.startedAt = new Date().toISOString();
+					sessionData.expiresAt = new Date(
+						Date.now() + 30 * 60 * 1000
+					).toISOString();
+
 					sessionStorage.setItem(
 						`quiz_${quizId}_token`,
 						sessionToken
 					);
+					sessionStorage.setItem(
+						`quiz_${quizId}_sessionData`,
+						JSON.stringify(sessionData)
+					);
 
-					// Hide form
+					// Hide form and show session info
 					document
 						.getElementById("studentForm")
 						.classList.add("hidden");
+					showSessionInfo();
+					startTimer();
 					hideMessage();
 
 					// Show first question
@@ -287,14 +440,17 @@
 					if (!response.ok) {
 						// Session expired or invalid
 						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
 						sessionToken = null;
 						throw new Error(data.error || "Session expired");
 					}
 
-					// Hide form
+					// Hide form and show session info
 					document
 						.getElementById("studentForm")
 						.classList.add("hidden");
+					showSessionInfo();
+					startTimer();
 					hideMessage();
 
 					// Show current question
@@ -310,9 +466,77 @@
 						"error"
 					);
 					sessionStorage.removeItem(`quiz_${quizId}_token`);
+					sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
 					sessionToken = null;
 					await loadSections();
 				}
+			}
+
+			function showSessionInfo() {
+				const sessionInfoDiv = document.getElementById("sessionInfo");
+				sessionInfoDiv.classList.remove("hidden");
+
+				document.getElementById("sessionStudent").textContent =
+					sessionData.studentName || "-";
+				document.getElementById("sessionSection").textContent =
+					sessionData.section || "-";
+				document.getElementById("sessionToken").textContent =
+					sessionToken ? sessionToken.substring(0, 16) + "..." : "-";
+			}
+
+			function startTimer() {
+				if (timerInterval) {
+					clearInterval(timerInterval);
+				}
+
+				updateTimer();
+				timerInterval = setInterval(updateTimer, 1000);
+			}
+
+			function updateTimer() {
+				if (!sessionData.expiresAt) return;
+
+				const now = Date.now();
+				const expiresAt = new Date(sessionData.expiresAt).getTime();
+				const remaining = Math.max(0, expiresAt - now);
+
+				const minutes = Math.floor(remaining / 60000);
+				const seconds = Math.floor((remaining % 60000) / 1000);
+
+				const timerElement = document.getElementById("sessionTimer");
+				const timerContainer = timerElement.parentElement;
+
+				timerElement.textContent = `${minutes}:${seconds
+					.toString()
+					.padStart(2, "0")}`;
+
+				// Add warning class when less than 5 minutes
+				if (minutes < 5) {
+					timerContainer.classList.add("timer-warning");
+				} else {
+					timerContainer.classList.remove("timer-warning");
+				}
+
+				// Session expired
+				if (remaining === 0) {
+					clearInterval(timerInterval);
+					handleSessionExpired();
+				}
+			}
+
+			function handleSessionExpired() {
+				const container = document.getElementById("questionContainer");
+				container.innerHTML = `
+					<div class="session-expired-notice">
+						⏰ Session Expired
+						<p style="margin-top: 0.5rem; font-weight: normal;">Your quiz session has expired. Please start a new quiz.</p>
+						<a href="/" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Back to Home</a>
+					</div>
+				`;
+
+				// Clear session storage
+				sessionStorage.removeItem(`quiz_${quizId}_token`);
+				sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
 			}
 
 			function displayQuestion(question, index, total) {
@@ -339,7 +563,6 @@
 
 				const optionsHtml = question.options
 					.map((option, i) => {
-						const safeOption = escapeHtml(option);
 						const optionId = `option-${i}`;
 						return `
 							<div class="option-radio">
@@ -347,9 +570,9 @@
 									type="radio" 
 									name="answer" 
 									id="${optionId}"
-									value="${escapeHtml(option)}"
+									value="${escapeHtmlAttribute(option)}"
 								/>
-								<label for="${optionId}">${safeOption}</label>
+								<label for="${optionId}">${escapeHtml(option)}</label>
 							</div>
 						`;
 					})
@@ -428,7 +651,9 @@
 
 					if (data.completed) {
 						// Quiz finished
+						clearInterval(timerInterval);
 						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
 						showResults(data.results);
 					} else {
 						// Show next question
@@ -454,11 +679,12 @@
 			}
 
 			function showResults(results) {
-				// Hide question container and progress
+				// Hide question container, progress, and session info
 				document
 					.getElementById("questionContainer")
 					.classList.add("hidden");
 				document.getElementById("progressBar").classList.add("hidden");
+				document.getElementById("sessionInfo").classList.add("hidden");
 
 				// Show results
 				const container = document.getElementById("resultsContainer");
@@ -512,6 +738,15 @@
 
 			function hideMessage() {
 				document.getElementById("messageContainer").innerHTML = "";
+			}
+
+			function escapeHtmlAttribute(text) {
+				return String(text)
+					.replace(/&/g, "&amp;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;");
 			}
 
 			function escapeHtml(text) {
