@@ -1,5 +1,4 @@
-// express/db/queries/whitelist.js
-import db from "../database.js";
+import db from "../db/database.js";
 
 /**
  * @typedef {Object} WhitelistedStudent

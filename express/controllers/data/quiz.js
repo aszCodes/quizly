@@ -4,8 +4,8 @@ import {
 	createQuizAttempt,
 	fetchQuizQuestions,
 	getQuizById,
-} from "../../db/queries/quizzes.js";
-import { findOrCreateStudent } from "../../db/queries/students.js";
+} from "../../repositories/quizzes.repository.js";
+import { findOrCreateStudent } from "../../repositories/students.repository.js";
 import {
 	createQuizSession,
 	getSessionByToken,
@@ -17,8 +17,8 @@ import {
 	getQuestionView,
 	validateAnswerTiming,
 	hasQuizSession,
-} from "../../db/queries/session.js";
-import { isStudentWhitelisted } from "../../db/queries/whitelist.js";
+} from "../../repositories/session.repository.js";
+import { isStudentWhitelisted } from "../../repositories/whitelist.repository.js";
 import db from "../../db/database.js";
 
 /**

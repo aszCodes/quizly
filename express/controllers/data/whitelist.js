@@ -3,7 +3,7 @@ import {
 	getAllWhitelistedStudents,
 	getWhitelistedStudentsBySection as fetchWhitelistedStudentsBySection,
 	getAllSections,
-} from "../../db/queries/whitelist.js";
+} from "../../repositories/whitelist.repository.js";
 
 /**
  * GET /api/whitelist/students - Get all whitelisted students

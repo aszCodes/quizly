@@ -1,4 +1,4 @@
-import db from "../database.js";
+import db from "../db/database.js";
 import crypto from "node:crypto";
 
 /**

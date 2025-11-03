@@ -1,5 +1,5 @@
-import db from "../database.js";
-import { parseQuestionOptions } from "./questions.js";
+import db from "../db/database.js";
+import { parseQuestionOptions } from "./questions.repository.js";
 
 /**
  * @typedef {Object} Quiz
