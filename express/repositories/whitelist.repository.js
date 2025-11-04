@@ -2,18 +2,21 @@ import db from "../db/database.js";
 
 /**
  * @typedef {Object} WhitelistedStudent
- * @property {number} id - Unique identifier
- * @property {string} name - Student full name
- * @property {string} section - Section identifier
- * @property {1|0} is_active - Indicates if student is active
- * @property {string} created_at - ISO timestamp string
+ * @property {number} id - Unique student identifier.
+ * @property {string} name - Full name of the student.
+ * @property {string} section - Section name or identifier.
+ * @property {1|0} is_active - Indicates if the student is active.
+ * @property {string} created_at - ISO timestamp string of creation.
  */
 
 /**
- * Check if a student is whitelisted (case-insensitive)
- * @param {string} name - Student name
- * @param {string} section - Section identifier
- * @returns {WhitelistedStudent|null} Matching whitelisted student or null if not found
+ * Check if a student is whitelisted (case-insensitive).
+ *
+ * @param {string} name - Student name.
+ * @param {string} section - Section name or identifier.
+ * @returns {WhitelistedStudent|null} The matching active whitelisted student, or null if not found.
+ *
+ * @throws {Error} If the database query fails.
  */
 export function isStudentWhitelisted(name, section) {
 	return db
@@ -30,9 +33,12 @@ export function isStudentWhitelisted(name, section) {
 }
 
 /**
- * Get all whitelisted students for a section
- * @param {string} section - Section identifier (case-insensitive)
- * @returns {WhitelistedStudent[]} List of whitelisted students in the section
+ * Retrieve all whitelisted students for a given section.
+ *
+ * @param {string} section - Section name or identifier (case-insensitive).
+ * @returns {WhitelistedStudent[]} List of active whitelisted students in the section.
+ *
+ * @throws {Error} If the database query fails.
  */
 export function getWhitelistedStudentsBySection(section) {
 	return db
@@ -49,8 +55,11 @@ export function getWhitelistedStudentsBySection(section) {
 }
 
 /**
- * Get all whitelisted students across all sections
- * @returns {WhitelistedStudent[]} List of all active whitelisted students
+ * Retrieve all active whitelisted students across all sections.
+ *
+ * @returns {WhitelistedStudent[]} List of all active whitelisted students.
+ *
+ * @throws {Error} If the database query fails.
  */
 export function getAllWhitelistedStudents() {
 	return db
@@ -66,10 +75,13 @@ export function getAllWhitelistedStudents() {
 }
 
 /**
- * Add a student to whitelist
- * @param {string} name - Student full name
- * @param {string} section - Section identifier
- * @returns {import('better-sqlite3').RunResult} Insert operation result
+ * Add a single student to the whitelist.
+ *
+ * @param {string} name - Student name.
+ * @param {string} section - Section name or identifier.
+ * @returns {import('better-sqlite3').RunResult} SQLite insert result (includes `lastInsertRowid`).
+ *
+ * @throws {Error} If the insert operation fails.
  */
 export function addStudentToWhitelist(name, section) {
 	return db
@@ -83,9 +95,12 @@ export function addStudentToWhitelist(name, section) {
 }
 
 /**
- * Add multiple students to whitelist (ignores duplicates)
- * @param {{name: string, section: string}[]} students - List of students to insert
+ * Add multiple students to the whitelist (ignores duplicates).
+ *
+ * @param {{name: string, section: string}[]} students - Array of students to insert.
  * @returns {void}
+ *
+ * @throws {Error} If the batch insert transaction fails.
  */
 export function addMultipleStudentsToWhitelist(students) {
 	const insert = db.prepare(
@@ -105,9 +120,12 @@ export function addMultipleStudentsToWhitelist(students) {
 }
 
 /**
- * Soft delete a student from whitelist
- * @param {number} id - Student ID
- * @returns {import('better-sqlite3').RunResult} Update operation result
+ * Soft-delete a student from the whitelist by ID.
+ *
+ * @param {number} id - Student ID.
+ * @returns {import('better-sqlite3').RunResult} SQLite update result.
+ *
+ * @throws {Error} If the update operation fails.
  */
 export function removeStudentFromWhitelist(id) {
 	return db
@@ -122,8 +140,11 @@ export function removeStudentFromWhitelist(id) {
 }
 
 /**
- * Get all unique section names
- * @returns {string[]} List of active section identifiers
+ * Retrieve all unique active section names.
+ *
+ * @returns {string[]} List of distinct active section identifiers.
+ *
+ * @throws {Error} If the database query fails.
  */
 export function getAllSections() {
 	const rows = db

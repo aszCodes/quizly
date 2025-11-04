@@ -7,7 +7,7 @@ import crypto from "node:crypto";
  * @property {string} session_token
  * @property {number} student_id
  * @property {number} quiz_id
- * @property {Array<number>} question_order - Parsed JSON array of question IDs
+ * @property {Array<number>} question_order
  * @property {number} current_question_index
  * @property {string} started_at
  * @property {string} expires_at
@@ -15,11 +15,11 @@ import crypto from "node:crypto";
  */
 
 const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const MIN_QUESTION_TIME_MS = 1000; // 1 second minimum
-const MAX_QUESTION_TIME_MS = 10 * 60 * 1000; // 10 minutes maximum
+const MIN_QUESTION_TIME_MS = 1000; // 1 second
+const MAX_QUESTION_TIME_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
- * Generate a unique session token
+ * Generate a unique session token.
  * @returns {string}
  */
 function generateSessionToken() {
@@ -27,7 +27,7 @@ function generateSessionToken() {
 }
 
 /**
- * Shuffle array in place
+ * Shuffle an array.
  * @param {Array} array
  * @returns {Array}
  */
@@ -41,10 +41,10 @@ function shuffleArray(array) {
 }
 
 /**
- * Create a new quiz session
+ * Create a new quiz session.
  * @param {number} student_id
  * @param {number} quiz_id
- * @param {Array<number>} question_ids - Array of question IDs for this quiz
+ * @param {Array<number>} question_ids
  * @returns {QuizSession}
  */
 export const createQuizSession = (student_id, quiz_id, question_ids) => {
@@ -97,7 +97,7 @@ export const createQuizSession = (student_id, quiz_id, question_ids) => {
 };
 
 /**
- * Get session by token
+ * Get session by token.
  * @param {string} session_token
  * @returns {QuizSession|undefined}
  */
@@ -118,8 +118,7 @@ export const getSessionByToken = session_token => {
 	// Parse question_order from JSON
 	try {
 		session.question_order = JSON.parse(session.question_order);
-	} catch (e) {
-		console.error("Failed to parse question_order:", e);
+	} catch {
 		session.question_order = [];
 	}
 
@@ -127,27 +126,17 @@ export const getSessionByToken = session_token => {
 };
 
 /**
- * Check if session is valid (not expired, not completed)
+ * Check if session is valid.
  * @param {QuizSession} session
  * @returns {boolean}
  */
 export const isSessionValid = session => {
-	if (!session) {
-		return false;
-	}
-
-	if (session.completed_at) {
-		return false;
-	}
-
-	const now = new Date();
-	const expires = new Date(session.expires_at);
-
-	return now < expires;
+	if (!session || session.completed_at) return false;
+	return new Date() < new Date(session.expires_at);
 };
 
 /**
- * Update session's current question index
+ * Update session's current question index.
  * @param {number} session_id
  * @param {number} new_index
  */
@@ -162,7 +151,7 @@ export const updateSessionQuestionIndex = (session_id, new_index) => {
 };
 
 /**
- * Mark session as completed
+ * Mark session as completed.
  * @param {number} session_id
  */
 export const completeSession = session_id => {
@@ -176,13 +165,12 @@ export const completeSession = session_id => {
 };
 
 /**
- * Record that a question was viewed
+ * Record a question view.
  * @param {number} session_id
  * @param {number} question_id
  */
 export const recordQuestionView = (session_id, question_id) => {
 	const viewed_at = new Date().toISOString();
-
 	db.prepare(
 		`
 		INSERT INTO question_views (session_id, question_id, viewed_at)
@@ -192,7 +180,7 @@ export const recordQuestionView = (session_id, question_id) => {
 };
 
 /**
- * Record that a question was answered
+ * Record a question as answered.
  * @param {number} session_id
  * @param {number} question_id
  */
@@ -207,10 +195,10 @@ export const recordQuestionAnswered = (session_id, question_id) => {
 };
 
 /**
- * Get question view record
+ * Get question view record.
  * @param {number} session_id
  * @param {number} question_id
- * @returns {Object|undefined}
+ * @returns {{id:number, session_id:number, question_id:number, viewed_at:string, answered_at:string|null}|undefined}
  */
 export const getQuestionView = (session_id, question_id) => {
 	return db
@@ -225,35 +213,25 @@ export const getQuestionView = (session_id, question_id) => {
 };
 
 /**
- * Validate answer timing (not too fast, not too slow)
- * @param {string} viewed_at - ISO datetime string
- * @returns {{ valid: boolean, reason?: string }}
+ * Validate answer timing.
+ * @param {string} viewed_at
+ * @returns {{valid:boolean, reason?:string}}
  */
 export const validateAnswerTiming = viewed_at => {
-	const viewedTime = new Date(viewed_at);
-	const now = new Date();
-	const duration = now - viewedTime;
+	const duration = new Date() - new Date(viewed_at);
 
-	if (duration < MIN_QUESTION_TIME_MS) {
-		return {
-			valid: false,
-			reason: "Answer submitted too quickly",
-		};
-	}
+	if (duration < MIN_QUESTION_TIME_MS)
+		return { valid: false, reason: "Answer submitted too quickly" };
 
-	if (duration > MAX_QUESTION_TIME_MS) {
-		return {
-			valid: false,
-			reason: "Answer took too long (session may have expired)",
-		};
-	}
+	if (duration > MAX_QUESTION_TIME_MS)
+		return { valid: false, reason: "Answer took too long" };
 
 	return { valid: true };
 };
 
 /**
- * Delete expired sessions (cleanup task)
- * @returns {number} Number of deleted sessions
+ * Delete expired sessions.
+ * @returns {number} Deleted count
  */
 export const cleanupExpiredSessions = () => {
 	const result = db
@@ -270,7 +248,7 @@ export const cleanupExpiredSessions = () => {
 };
 
 /**
- * Check if student has an active or completed session for a quiz
+ * Check if student already has a session for this quiz.
  * @param {number} student_id
  * @param {number} quiz_id
  * @returns {boolean}

@@ -1,6 +1,11 @@
 import db from "../db/database.js";
 import { parseQuestionOptions } from "./question.repository.js";
 
+/**
+ * Get quiz by ID.
+ * @param {number} quizId
+ * @returns {{id:number, title:string, is_active:number, created_at:string}|undefined}
+ */
 export const findQuizById = quizId => {
 	return db
 		.prepare(
@@ -12,6 +17,10 @@ export const findQuizById = quizId => {
 		.get(quizId);
 };
 
+/**
+ * Get all active quizzes.
+ * @returns {Array<{id:number, title:string, is_active:number, created_at:string}>}
+ */
 export const findActiveQuizzes = () => {
 	return db
 		.prepare(
@@ -24,6 +33,11 @@ export const findActiveQuizzes = () => {
 		.all();
 };
 
+/**
+ * Get all questions for a quiz.
+ * @param {number} quizId
+ * @returns {Array<{id:number, question_text:string, correct_answer:string, options:string[], quiz_id:number, is_active:number, created_at:string}>}
+ */
 export const findQuizQuestions = quizId => {
 	const questions = db
 		.prepare(
@@ -38,6 +52,16 @@ export const findQuizQuestions = quizId => {
 	return questions.map(parseQuestionOptions);
 };
 
+/**
+ * Create a quiz attempt.
+ * @param {number} studentId
+ * @param {number} quizId
+ * @param {number} questionId
+ * @param {string|number} answer
+ * @param {number} score
+ * @param {number} duration
+ * @returns {import('better-sqlite3').RunResult|null}
+ */
 export const createAttempt = (
 	studentId,
 	quizId,
@@ -46,7 +70,6 @@ export const createAttempt = (
 	score,
 	duration
 ) => {
-	// Verify referenced rows exist
 	const quiz = db.prepare("SELECT id FROM quizzes WHERE id = ?").get(quizId);
 	const question = db
 		.prepare("SELECT id FROM questions WHERE id = ?")
@@ -55,9 +78,7 @@ export const createAttempt = (
 		.prepare("SELECT id FROM students WHERE id = ?")
 		.get(studentId);
 
-	if (!quiz || !question || !student) {
-		return null;
-	}
+	if (!quiz || !question || !student) return null;
 
 	return db
 		.prepare(
@@ -68,6 +89,12 @@ export const createAttempt = (
 		.run(studentId, quizId, questionId, answer, score, duration);
 };
 
+/**
+ * Get leaderboard for a quiz (sorted by score, then duration).
+ * @param {number} quizId
+ * @param {number} [limit=5]
+ * @returns {Array<{student_name:string, section:string, score:number, duration:number, attempts:number}>}
+ */
 export const findLeaderboard = (quizId, limit = 5) => {
 	return db
 		.prepare(
@@ -88,6 +115,12 @@ export const findLeaderboard = (quizId, limit = 5) => {
 		.all(quizId, limit);
 };
 
+/**
+ * Get all attempts of a student for a specific quiz.
+ * @param {number} studentId
+ * @param {number} quizId
+ * @returns {Array<{score:number, duration:number}>}
+ */
 export const findStudentAttempts = (studentId, quizId) => {
 	return db
 		.prepare(

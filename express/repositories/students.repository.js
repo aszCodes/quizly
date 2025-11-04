@@ -2,17 +2,20 @@ import db from "../db/database.js";
 
 /**
  * @typedef {Object} Student
- * @property {number} id
- * @property {string} name
- * @property {string|null} section
- * @property {string} created_at
+ * @property {number} id - Unique student identifier.
+ * @property {string} name - Full name of the student.
+ * @property {string|null} section - Section name or null if not applicable.
+ * @property {string} created_at - ISO timestamp of student creation.
  */
 
 /**
- * Finds a student by name and section (case-insensitive)
- * @param {string} name
- * @param {string|null} section
- * @returns {Student|undefined}
+ * Find a student by name and section (case-insensitive).
+ *
+ * @param {string} name - Student name.
+ * @param {string|null} [section=null] - Section name, or null for none.
+ * @returns {Student|undefined} The matching student, or undefined if not found.
+ *
+ * @throws {Error} If the database query fails.
  */
 export const findStudentByNameAndSection = (name, section = null) => {
 	return db
@@ -31,10 +34,13 @@ export const findStudentByNameAndSection = (name, section = null) => {
 };
 
 /**
- * Creates a new student
- * @param {string} name
- * @param {string|null} section
- * @returns {import('better-sqlite3').RunResult}
+ * Create a new student record.
+ *
+ * @param {string} name - Student name.
+ * @param {string|null} [section=null] - Section name, or null for none.
+ * @returns {import('better-sqlite3').RunResult} SQLite run result containing `lastInsertRowid`.
+ *
+ * @throws {Error} If the insert operation fails.
  */
 export const createStudent = (name, section = null) => {
 	return db
@@ -48,10 +54,13 @@ export const createStudent = (name, section = null) => {
 };
 
 /**
- * Finds existing student or creates a new one
- * @param {string} name
- * @param {string|null} section
- * @returns {Student}
+ * Find an existing student or create a new one if not found.
+ *
+ * @param {string} name - Student name.
+ * @param {string|null} [section=null] - Section name, or null for none.
+ * @returns {Student} The existing or newly created student.
+ *
+ * @throws {Error} If database operations fail.
  */
 export const findOrCreateStudent = (name, section = null) => {
 	const existing = findStudentByNameAndSection(name, section);

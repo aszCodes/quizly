@@ -5,7 +5,7 @@ import db from "../db/database.js";
  * @property {number} id
  * @property {string} question_text
  * @property {string} correct_answer
- * @property {Array<string>} options
+ * @property {string[]} options
  * @property {number|null} quiz_id
  * @property {number} is_active
  * @property {string} created_at
@@ -22,7 +22,7 @@ import db from "../db/database.js";
  */
 
 /**
- * Helper function to parse options JSON
+ * Parse JSON options in a question record.
  * @param {Question} question
  * @returns {Question}
  */
@@ -42,7 +42,7 @@ export const parseQuestionOptions = question => {
 };
 
 /**
- * Checks if a student has already attempted a single question
+ * Check if a student has already attempted a standalone question.
  * @param {number} student_id
  * @param {number} question_id
  * @returns {boolean}
@@ -56,12 +56,11 @@ export const hasAttemptedQuestion = (student_id, question_id) => {
 		LIMIT 1`
 		)
 		.get(student_id, question_id);
-
 	return !!attempt;
 };
 
 /**
- * Gets the active single question (not part of a quiz)
+ * Fetch the active standalone question.
  * @returns {Question|undefined}
  */
 export const fetchSingleQuestion = () => {
@@ -74,12 +73,11 @@ export const fetchSingleQuestion = () => {
 		LIMIT 1`
 		)
 		.get();
-
 	return parseQuestionOptions(question);
 };
 
 /**
- * Gets a specific question by ID
+ * Fetch a question by ID.
  * @param {number} question_id
  * @returns {Question|undefined}
  */
@@ -92,12 +90,11 @@ export const fetchQuestionById = question_id => {
 		WHERE id = ?`
 		)
 		.get(question_id);
-
 	return parseQuestionOptions(question);
 };
 
 /**
- * Creates a single question attempt (not part of a quiz)
+ * Insert a new attempt for a standalone question.
  * @param {number} student_id
  * @param {number} question_id
  * @param {string} student_answer
@@ -122,7 +119,7 @@ export const createSingleAttempt = (
 };
 
 /**
- * Fetches all single question leaderboard (not part of any quiz)
+ * Fetch leaderboard entries for standalone questions.
  * @returns {AttemptWithStudent[]}
  */
 export const fetchSingleQuestionLeaderboard = () => {
