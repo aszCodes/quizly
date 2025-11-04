@@ -8,23 +8,33 @@ const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 255;
 
 /**
- * Get all active quizzes
- * @returns {Array} List of active quizzes
+ * Retrieve all active quizzes available to students.
+ *
+ * @returns {Array<{id:number, title:string, description:string, created_at:string}>}
+ * @throws {DatabaseError} If a repository query fails.
  */
 export const getActiveQuizzes = () => {
 	return quizRepo.findActiveQuizzes();
 };
 
 /**
- * Start a new quiz session for a student
- * @param {string} studentName - Student's full name
- * @param {string} section - Student's section
- * @param {number} quizId - Quiz ID to start
- * @returns {Object} Session data with first question
- * @throws {ValidationError} Invalid input
- * @throws {ForbiddenError} Student not whitelisted
- * @throws {NotFoundError} Quiz or questions not found
- * @throws {ConflictError} Already attempted
+ * Initialize a new quiz session for a whitelisted student.
+ *
+ * @param {string} studentName - Full name of the student.
+ * @param {string} section - Student’s section identifier.
+ * @param {number} quizId - Target quiz ID.
+ *
+ * @returns {{
+ *   sessionToken: string,
+ *   question: { id:number, question_text:string, options:string[] },
+ *   totalQuestions: number,
+ *   currentIndex: number
+ * }}
+ *
+ * @throws {ValidationError} If input fields are missing or invalid.
+ * @throws {ForbiddenError} If the student is not whitelisted.
+ * @throws {ConflictError} If the quiz has already been attempted.
+ * @throws {NotFoundError} If the quiz or its questions do not exist.
  */
 export const startQuizSession = (studentName, section, quizId) => {
 	// Validate quiz ID
@@ -99,15 +109,33 @@ export const startQuizSession = (studentName, section, quizId) => {
 };
 
 /**
- * Submit an answer for a quiz question
- * @param {string} sessionToken - Session token
- * @param {number} questionId - Question ID being answered
- * @param {string|number} answer - Student's answer
- * @param {number} quizId - Quiz ID
- * @returns {Object} Answer result with next question or final results
- * @throws {ValidationError} Invalid input, timing, or mismatched IDs
- * @throws {UnauthorizedError} Invalid or expired session
- * @throws {NotFoundError} Question not found
+ * Submit an answer for the current quiz question.
+ *
+ * @param {string} sessionToken - Active quiz session token.
+ * @param {number} questionId - Current question ID.
+ * @param {string|number} answer - Submitted answer.
+ * @param {number} quizId - Quiz ID.
+ *
+ * @returns {{
+ *   correct: boolean,
+ *   score: number,
+ *   completed: boolean,
+ *   results?: {
+ *     totalScore: number,
+ *     correctCount: number,
+ *     incorrectCount: number,
+ *     questionsAnswered: number,
+ *     totalDuration: number
+ *   },
+ *   nextQuestion?: { id:number, question_text:string, options:string[] },
+ *   currentIndex?: number,
+ *   totalQuestions?: number
+ * }}
+ *
+ * @throws {ValidationError} If input or question sequence is invalid.
+ * @throws {UnauthorizedError} If session is missing or expired.
+ * @throws {NotFoundError} If the question does not exist.
+ * @throws {ConflictError} If the question was already answered.
  */
 export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 	// Check required fields
@@ -238,13 +266,20 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 };
 
 /**
- * Get current question for an active session
- * @param {string} sessionToken - Session token
- * @param {number} quizId - Quiz ID
- * @returns {Object} Current question data
- * @throws {ValidationError} Missing session token or invalid quiz ID
- * @throws {UnauthorizedError} Invalid or expired session
- * @throws {NotFoundError} Question not found
+ * Retrieve the current active question for an ongoing session.
+ *
+ * @param {string} sessionToken - Session token.
+ * @param {number} quizId - Quiz ID.
+ *
+ * @returns {{
+ *   question: { id:number, question_text:string, options:string[] },
+ *   currentIndex: number,
+ *   totalQuestions: number
+ * }}
+ *
+ * @throws {ValidationError} If session token or quiz ID is missing/invalid.
+ * @throws {UnauthorizedError} If session is expired or invalid.
+ * @throws {NotFoundError} If current question cannot be found.
  */
 export const getCurrentQuestion = (sessionToken, quizId) => {
 	// Validate required fields
@@ -284,11 +319,13 @@ export const getCurrentQuestion = (sessionToken, quizId) => {
 };
 
 /**
- * Get leaderboard for a quiz
- * @param {number} quizId - Quiz ID
- * @returns {Array} Leaderboard entries
- * @throws {ValidationError} Invalid quiz ID
- * @throws {NotFoundError} Quiz not found
+ * Fetch leaderboard entries for a completed quiz.
+ *
+ * @param {number} quizId - Quiz ID.
+ * @returns {Array<{rank:number, name:string, section:string, score:number, duration:number}>}
+ *
+ * @throws {ValidationError} If quiz ID is invalid.
+ * @throws {NotFoundError} If quiz does not exist.
  */
 export const getLeaderboard = quizId => {
 	// Validate quiz ID
@@ -301,16 +338,19 @@ export const getLeaderboard = quizId => {
 	return quizRepo.findLeaderboard(quizId);
 };
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
 /**
- * Calculate final quiz results for a student
+ * Compute final quiz results summary for a student.
+ *
  * @private
- * @param {number} studentId - Student ID
- * @param {number} quizId - Quiz ID
- * @returns {Object} Quiz results summary
+ * @param {number} studentId - Student ID.
+ * @param {number} quizId - Quiz ID.
+ * @returns {{
+ *   totalScore: number,
+ *   correctCount: number,
+ *   incorrectCount: number,
+ *   questionsAnswered: number,
+ *   totalDuration: number
+ * }}
  */
 function calculateQuizResults(studentId, quizId) {
 	const studentAttempts = quizRepo.findStudentAttempts(studentId, quizId);

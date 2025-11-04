@@ -2,18 +2,18 @@ import db from "../db/database.js";
 
 /**
  * @typedef {Object} WhitelistedStudent
- * @property {number} id
- * @property {string} name
- * @property {string} section
- * @property {number} is_active
- * @property {string} created_at
+ * @property {number} id - Unique identifier
+ * @property {string} name - Student full name
+ * @property {string} section - Section identifier
+ * @property {1|0} is_active - Indicates if student is active
+ * @property {string} created_at - ISO timestamp string
  */
 
 /**
  * Check if a student is whitelisted (case-insensitive)
- * @param {string} name
- * @param {string} section
- * @returns {WhitelistedStudent|undefined}
+ * @param {string} name - Student name
+ * @param {string} section - Section identifier
+ * @returns {WhitelistedStudent|null} Matching whitelisted student or null if not found
  */
 export function isStudentWhitelisted(name, section) {
 	return db
@@ -31,8 +31,8 @@ export function isStudentWhitelisted(name, section) {
 
 /**
  * Get all whitelisted students for a section
- * @param {string} section
- * @returns {WhitelistedStudent[]}
+ * @param {string} section - Section identifier (case-insensitive)
+ * @returns {WhitelistedStudent[]} List of whitelisted students in the section
  */
 export function getWhitelistedStudentsBySection(section) {
 	return db
@@ -49,8 +49,8 @@ export function getWhitelistedStudentsBySection(section) {
 }
 
 /**
- * Get all whitelisted students (all sections)
- * @returns {WhitelistedStudent[]}
+ * Get all whitelisted students across all sections
+ * @returns {WhitelistedStudent[]} List of all active whitelisted students
  */
 export function getAllWhitelistedStudents() {
 	return db
@@ -67,9 +67,9 @@ export function getAllWhitelistedStudents() {
 
 /**
  * Add a student to whitelist
- * @param {string} name
- * @param {string} section
- * @returns {import('better-sqlite3').RunResult}
+ * @param {string} name - Student full name
+ * @param {string} section - Section identifier
+ * @returns {import('better-sqlite3').RunResult} Insert operation result
  */
 export function addStudentToWhitelist(name, section) {
 	return db
@@ -83,8 +83,9 @@ export function addStudentToWhitelist(name, section) {
 }
 
 /**
- * Add multiple students to whitelist
- * @param {Array<{name: string, section: string}>} students
+ * Add multiple students to whitelist (ignores duplicates)
+ * @param {{name: string, section: string}[]} students - List of students to insert
+ * @returns {void}
  */
 export function addMultipleStudentsToWhitelist(students) {
 	const insert = db.prepare(
@@ -104,8 +105,9 @@ export function addMultipleStudentsToWhitelist(students) {
 }
 
 /**
- * Remove a student from whitelist (soft delete)
- * @param {number} id
+ * Soft delete a student from whitelist
+ * @param {number} id - Student ID
+ * @returns {import('better-sqlite3').RunResult} Update operation result
  */
 export function removeStudentFromWhitelist(id) {
 	return db
@@ -120,11 +122,11 @@ export function removeStudentFromWhitelist(id) {
 }
 
 /**
- * Get all sections
- * @returns {string[]}
+ * 7️⃣ Get all unique section names
+ * @returns {string[]} List of active section identifiers
  */
 export function getAllSections() {
-	const sections = db
+	const rows = db
 		.prepare(
 			`
 			SELECT DISTINCT section
@@ -134,5 +136,5 @@ export function getAllSections() {
 		`
 		)
 		.all();
-	return sections.map(s => s.section);
+	return rows.map(r => r.section);
 }

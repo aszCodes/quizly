@@ -1,4 +1,4 @@
-import { AppError, DatabaseError } from "../errors/app.error";
+import { AppError, DatabaseError } from "../errors/app.error.js";
 
 export default function errorHandler(err, req, res, next) {
 	// Log errors outside of test environment
