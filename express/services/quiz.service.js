@@ -2,95 +2,60 @@ import * as quizRepo from "../repositories/quiz.repository.js";
 import * as studentRepo from "../repositories/students.repository.js";
 import * as whitelistRepo from "../repositories/whitelist.repository.js";
 import * as sessionRepo from "../repositories/session.repository.js";
+import { ErrorFactory, validateOrThrow } from "../errors/error.factory.js";
 
-// Custom error classes
-class ValidationError extends Error {
-	constructor(message) {
-		super(message);
-		this.name = "ValidationError";
-		this.status = 400;
-	}
-}
+const MIN_NAME_LENGTH = 2;
+const MAX_NAME_LENGTH = 255;
 
-class NotFoundError extends Error {
-	constructor(message) {
-		super(message);
-		this.name = "NotFoundError";
-		this.status = 404;
-	}
-}
-
-class ForbiddenError extends Error {
-	constructor(message) {
-		super(message);
-		this.name = "ForbiddenError";
-		this.status = 403;
-	}
-}
-
-class UnauthorizedError extends Error {
-	constructor(message) {
-		super(message);
-		this.name = "UnauthorizedError";
-		this.status = 401;
-	}
-}
-
+/**
+ * Get all active quizzes
+ * @returns {Array} List of active quizzes
+ */
 export const getActiveQuizzes = () => {
 	return quizRepo.findActiveQuizzes();
 };
 
+/**
+ * Start a new quiz session for a student
+ * @param {string} studentName - Student's full name
+ * @param {string} section - Student's section
+ * @param {number} quizId - Quiz ID to start
+ * @returns {Object} Session data with first question
+ * @throws {ValidationError} Invalid input
+ * @throws {ForbiddenError} Student not whitelisted
+ * @throws {NotFoundError} Quiz or questions not found
+ * @throws {ConflictError} Already attempted
+ */
 export const startQuizSession = (studentName, section, quizId) => {
 	// Validate quiz ID
-	if (!quizId || isNaN(quizId) || quizId <= 0) {
-		throw new ValidationError("Invalid quiz ID");
-	}
+	validateOrThrow.positiveInteger(quizId, "quiz ID");
 
-	// Validate student name
-	if (
-		!studentName ||
-		typeof studentName !== "string" ||
-		studentName.trim().length < 2
-	) {
-		throw new ValidationError("Invalid student name");
-	}
+	// Validate and normalize student name
+	const trimmedName = validateOrThrow.stringLength(
+		studentName,
+		"student name",
+		MIN_NAME_LENGTH,
+		MAX_NAME_LENGTH
+	);
 
-	const trimmedName = studentName.trim();
-
-	// Validate section
-	let trimmedSection = null;
-	if (section !== undefined && section !== null) {
-		if (typeof section === "string") {
-			const cleaned = section.trim();
-			trimmedSection = cleaned.length > 0 ? cleaned : null;
-		}
-	}
-
-	if (!trimmedSection) {
-		throw new ValidationError("Section is required");
-	}
+	// Validate and normalize section
+	const trimmedSection = validateOrThrow.section(section);
 
 	// Check whitelist
 	const whitelistedStudent = whitelistRepo.isStudentWhitelisted(
 		trimmedName,
 		trimmedSection
 	);
-	if (!whitelistedStudent) {
-		throw new ForbiddenError(
-			"Student not found in class roster. Please verify your name and section with your teacher."
-		);
-	}
+	validateOrThrow.whitelisted(whitelistedStudent);
 
 	// Check if quiz exists
 	const quiz = quizRepo.findQuizById(quizId);
-	if (!quiz) {
-		throw new NotFoundError("Quiz not found");
-	}
+	validateOrThrow.exists(quiz, "Quiz");
 
-	// Get questions
+	// Get and validate questions
 	const questions = quizRepo.findQuizQuestions(quizId);
 	if (!questions || questions.length === 0) {
-		throw new NotFoundError("No questions found for this quiz");
+		throw ErrorFactory.noQuestions("quiz");
 	}
 
 	// Find or create student
@@ -100,9 +65,10 @@ export const startQuizSession = (studentName, section, quizId) => {
 	);
 
 	// Check if already attempted
-	if (sessionRepo.hasQuizSession(student.id, quizId)) {
-		throw new ValidationError("You have already attempted this quiz");
-	}
+	validateOrThrow.notAttempted(
+		sessionRepo.hasQuizSession(student.id, quizId),
+		"quiz"
+	);
 
 	// Create session with shuffled questions
 	const questionIds = questions.map(q => q.id);
@@ -132,35 +98,36 @@ export const startQuizSession = (studentName, section, quizId) => {
 	};
 };
 
+/**
+ * Submit an answer for a quiz question
+ * @param {string} sessionToken - Session token
+ * @param {number} questionId - Question ID being answered
+ * @param {string|number} answer - Student's answer
+ * @param {number} quizId - Quiz ID
+ * @returns {Object} Answer result with next question or final results
+ * @throws {ValidationError} Invalid input, timing, or mismatched IDs
+ * @throws {UnauthorizedError} Invalid or expired session
+ * @throws {NotFoundError} Question not found
+ */
 export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
-	// Validate inputs
-	if (
-		!sessionToken ||
-		!questionId ||
-		answer === undefined ||
-		answer === null
-	) {
-		throw new ValidationError("Missing required fields");
-	}
+	// Check required fields
+	validateOrThrow.requiredFields({ sessionToken, questionId, answer }, [
+		"sessionToken",
+		"questionId",
+		"answer",
+	]);
 
-	if (!quizId || isNaN(quizId) || quizId <= 0) {
-		throw new ValidationError("Invalid quiz ID");
-	}
+	// Validate quiz ID
+	validateOrThrow.positiveInteger(quizId, "quiz ID");
 
-	// Get session
+	// Get and validate session
 	const session = sessionRepo.getSessionByToken(sessionToken);
-	if (!session) {
-		throw new UnauthorizedError("Invalid session token");
-	}
-
-	// Validate session
-	if (!sessionRepo.isSessionValid(session)) {
-		throw new UnauthorizedError("Session expired or completed");
-	}
+	const isValid = sessionRepo.isSessionValid(session);
+	validateOrThrow.validSession(session, isValid);
 
 	// Verify quiz ID matches
 	if (session.quiz_id !== quizId) {
-		throw new ValidationError("Quiz ID mismatch");
+		throw ErrorFactory.quizIdMismatch();
 	}
 
 	// Get current question ID from session
@@ -169,18 +136,18 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 
 	// Verify submitted question ID matches current question
 	if (questionId !== currentQuestionId) {
-		throw new ValidationError("Question ID mismatch");
+		throw ErrorFactory.questionIdMismatch();
 	}
 
 	// Get question view record
 	const questionView = sessionRepo.getQuestionView(session.id, questionId);
 	if (!questionView) {
-		throw new ValidationError("Question was not viewed");
+		throw ErrorFactory.notViewed();
 	}
 
 	// Check if already answered
 	if (questionView.answered_at) {
-		throw new ValidationError("Question already answered");
+		throw ErrorFactory.alreadyAnswered();
 	}
 
 	// Validate timing
@@ -188,7 +155,11 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 		questionView.viewed_at
 	);
 	if (!timingValidation.valid) {
-		throw new ValidationError(timingValidation.reason);
+		if (timingValidation.reason.includes("quickly")) {
+			throw ErrorFactory.answerTooQuick();
+		} else {
+			throw ErrorFactory.answerTooSlow();
+		}
 	}
 
 	// Calculate duration
@@ -199,10 +170,7 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 	// Get all questions to check answer
 	const questions = quizRepo.findQuizQuestions(quizId);
 	const question = questions.find(q => q.id === questionId);
-
-	if (!question) {
-		throw new NotFoundError("Question not found");
-	}
+	validateOrThrow.exists(question, "Question");
 
 	// Convert answer to string for comparison
 	const answerStr = typeof answer === "string" ? answer : String(answer);
@@ -269,29 +237,32 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 	}
 };
 
+/**
+ * Get current question for an active session
+ * @param {string} sessionToken - Session token
+ * @param {number} quizId - Quiz ID
+ * @returns {Object} Current question data
+ * @throws {ValidationError} Missing session token or invalid quiz ID
+ * @throws {UnauthorizedError} Invalid or expired session
+ * @throws {NotFoundError} Question not found
+ */
 export const getCurrentQuestion = (sessionToken, quizId) => {
+	// Validate required fields
 	if (!sessionToken) {
-		throw new ValidationError("Missing session token");
+		throw ErrorFactory.missingSession();
 	}
 
-	if (!quizId || isNaN(quizId) || quizId <= 0) {
-		throw new ValidationError("Invalid quiz ID");
-	}
+	// Validate quiz ID
+	validateOrThrow.positiveInteger(quizId, "quiz ID");
 
-	// Get session
+	// Get and validate session
 	const session = sessionRepo.getSessionByToken(sessionToken);
-	if (!session) {
-		throw new UnauthorizedError("Invalid session token");
-	}
-
-	// Validate session
-	if (!sessionRepo.isSessionValid(session)) {
-		throw new UnauthorizedError("Session expired or completed");
-	}
+	const isValid = sessionRepo.isSessionValid(session);
+	validateOrThrow.validSession(session, isValid);
 
 	// Verify quiz ID matches
 	if (session.quiz_id !== quizId) {
-		throw new ValidationError("Quiz ID mismatch");
+		throw ErrorFactory.quizIdMismatch();
 	}
 
 	// Get current question
@@ -299,10 +270,7 @@ export const getCurrentQuestion = (sessionToken, quizId) => {
 		session.question_order[session.current_question_index];
 	const questions = quizRepo.findQuizQuestions(quizId);
 	const currentQuestion = questions.find(q => q.id === currentQuestionId);
-
-	if (!currentQuestion) {
-		throw new NotFoundError("Question not found");
-	}
+	validateOrThrow.exists(currentQuestion, "Question");
 
 	return {
 		question: {
@@ -315,21 +283,35 @@ export const getCurrentQuestion = (sessionToken, quizId) => {
 	};
 };
 
+/**
+ * Get leaderboard for a quiz
+ * @param {number} quizId - Quiz ID
+ * @returns {Array} Leaderboard entries
+ * @throws {ValidationError} Invalid quiz ID
+ * @throws {NotFoundError} Quiz not found
+ */
 export const getLeaderboard = quizId => {
-	if (!quizId || isNaN(quizId) || quizId <= 0) {
-		throw new ValidationError("Invalid quiz ID");
-	}
+	// Validate quiz ID
+	validateOrThrow.positiveInteger(quizId, "quiz ID");
 
 	// Ensure quiz exists
 	const quiz = quizRepo.findQuizById(quizId);
-	if (!quiz) {
-		throw new NotFoundError("Quiz not found");
-	}
+	validateOrThrow.exists(quiz, "Quiz");
 
 	return quizRepo.findLeaderboard(quizId);
 };
 
-// Helper function
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Calculate final quiz results for a student
+ * @private
+ * @param {number} studentId - Student ID
+ * @param {number} quizId - Quiz ID
+ * @returns {Object} Quiz results summary
+ */
 function calculateQuizResults(studentId, quizId) {
 	const studentAttempts = quizRepo.findStudentAttempts(studentId, quizId);
 

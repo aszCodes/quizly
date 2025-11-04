@@ -89,7 +89,7 @@ describe("Quiz Routes", () => {
 				.send({ section: "IT - A" });
 
 			expect(res.status).toBe(400);
-			expect(res.body.error).toBe("Invalid student name");
+			expect(res.body.error).toContain("student name");
 		});
 
 		test("should reject student name too short", async () => {
@@ -101,7 +101,9 @@ describe("Quiz Routes", () => {
 				});
 
 			expect(res.status).toBe(400);
-			expect(res.body.error).toBe("Invalid student name");
+			expect(res.body.error).toBe(
+				"Name must be between 2 and 255 characters"
+			);
 		});
 
 		test("should reject missing section", async () => {
@@ -166,7 +168,7 @@ describe("Quiz Routes", () => {
 					section: "IT - A",
 				});
 
-			expect(res.status).toBe(400);
+			expect(res.status).toBe(409);
 			expect(res.body.error).toBe("You have already attempted this quiz");
 		});
 	});
@@ -231,7 +233,9 @@ describe("Quiz Routes", () => {
 				.send({ sessionToken });
 
 			expect(res.status).toBe(400);
-			expect(res.body.error).toBe("Missing required fields");
+			expect(res.body.error).toBe(
+				"Missing required fields: questionId, answer"
+			);
 		});
 
 		test("should reject invalid session token", async () => {
