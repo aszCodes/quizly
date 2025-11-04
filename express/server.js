@@ -1,6 +1,6 @@
 import express from "express";
 import path from "node:path";
-import notFound from "./middlewares/notFoundHandler.js";
+import notFound from "./middlewares/notFound.handler.js";
 import errorHandler from "./middlewares/error.handler.js";
 import {
 	getQuestion,

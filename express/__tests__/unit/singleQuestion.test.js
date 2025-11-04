@@ -14,7 +14,8 @@ describe("Single Question Routes", () => {
 
 			expect(response.status).toBe(404);
 			expect(response.body).toEqual({
-				error: "No active question found",
+				error: "Active question not found",
+				code: "NOT_FOUND",
 			});
 		});
 
@@ -88,7 +89,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Missing required fields");
+				expect(response.body.error).toBe(
+					"Missing required fields: studentName"
+				);
 			});
 
 			it("should reject missing section", async () => {
@@ -100,7 +103,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Section is required");
+				expect(response.body.error).toBe(
+					"Missing required fields: section"
+				);
 			});
 
 			it("should reject missing questionId", async () => {
@@ -112,7 +117,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Missing required fields");
+				expect(response.body.error).toBe(
+					"Missing required fields: questionId"
+				);
 			});
 
 			it("should reject missing answer", async () => {
@@ -124,7 +131,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Missing required fields");
+				expect(response.body.error).toBe(
+					"Missing required fields: answer"
+				);
 			});
 
 			it("should reject missing duration", async () => {
@@ -136,7 +145,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Missing required fields");
+				expect(response.body.error).toBe(
+					"Missing required fields: duration"
+				);
 			});
 
 			it("should reject student name shorter than 2 characters", async () => {
@@ -150,7 +161,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid student name");
+				expect(response.body.error).toBe(
+					"Name must be between 2 and 255 characters"
+				);
 			});
 
 			it("should reject student name longer than 255 characters", async () => {
@@ -164,7 +177,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid student name");
+				expect(response.body.error).toBe(
+					"Name must be between 2 and 255 characters"
+				);
 			});
 
 			it("should reject invalid questionId (not a number)", async () => {
@@ -216,7 +231,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid duration");
+				expect(response.body.error).toBe(
+					"Invalid duration: must be a number"
+				);
 			});
 
 			it("should reject invalid duration (negative)", async () => {
@@ -229,7 +246,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid duration");
+				expect(response.body.error).toBe(
+					"Duration must be between 1ms and 3600000ms"
+				);
 			});
 
 			it("should reject invalid duration (zero)", async () => {
@@ -242,7 +261,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid duration");
+				expect(response.body.error).toBe(
+					"Duration must be between 1ms and 3600000ms"
+				);
 			});
 
 			it("should reject duration exceeding max (1 hour)", async () => {
@@ -255,7 +276,9 @@ describe("Single Question Routes", () => {
 				});
 
 				expect(response.status).toBe(400);
-				expect(response.body.error).toBe("Invalid duration");
+				expect(response.body.error).toBe(
+					"Duration must be between 1ms and 3600000ms"
+				);
 			});
 
 			it("should reject empty section string", async () => {
@@ -394,7 +417,7 @@ describe("Single Question Routes", () => {
 					duration: 3000,
 				});
 
-				expect(response.status).toBe(400);
+				expect(response.status).toBe(409);
 				expect(response.body.error).toBe(
 					"You have already attempted this question"
 				);

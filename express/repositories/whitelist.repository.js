@@ -122,7 +122,7 @@ export function removeStudentFromWhitelist(id) {
 }
 
 /**
- * 7️⃣ Get all unique section names
+ * Get all unique section names
  * @returns {string[]} List of active section identifiers
  */
 export function getAllSections() {
