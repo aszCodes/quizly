@@ -21,9 +21,18 @@ import {
 } from "./controllers/whitelist.controller.js";
 import { findQuizById } from "./repositories/quiz.repository.js";
 import httpLogger from "./config/logger.js";
+import { validateEnv } from "./config/env.js";
 
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "localhost";
+try {
+	validateEnv();
+	console.log("✓ Environment variables validated");
+} catch (error) {
+	console.error("✗ Environment validation failed:", error.message);
+	process.exit(1);
+}
+
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 
 const app = express();
 
