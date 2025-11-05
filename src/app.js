@@ -5,6 +5,8 @@ import notFound from "./middlewares/notFound.handler.js";
 import errorHandler from "./middlewares/error.handler.js";
 import viewRoutes from "./routes/view.routes.js";
 import apiRoutes from "./routes/api/index.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.config.js";
 
 /**
  * Create and configure Express application
@@ -25,6 +27,16 @@ export function createApp() {
 
 	// HTTP Request Logger
 	app.use(httpLogger);
+
+	// Swagger API
+	app.use(
+		"/api-docs",
+		swaggerUi.serve,
+		swaggerUi.setup(swaggerSpec, {
+			customCss: ".swagger-ui .topbar { display: none }",
+			customSiteTitle: "Quizly API Docs",
+		})
+	);
 
 	// Mount Routes
 	app.use("/", viewRoutes);

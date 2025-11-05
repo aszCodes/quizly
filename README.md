@@ -1,97 +1,129 @@
-color pallate: https://colorhunt.co/palette/37353e44444e715a5ad3dad9
-
 # Quizly
 
-An offline quiz app for teachers
+A self-hosted quiz application to conduct quizzes in classrooms. Works on local networks without requiring internet connectivity.
 
 ## Tech Stack
 
-**Client:** React, Redux, TailwindCSS
+**Client:** EJS templates, Vanilla JavaScript, CSS
 
-**Server:** Node, Express
+**Server:** Node.js, Express.js
+
+**Database:** SQLite3 (better-sqlite3)
+
+**Testing:** Jest, Supertest
+
+**Logging:** Pino, Pino-HTTP
 
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your .env file
+To run this project, you will need to add the following environment variables to your `.env` file:
 
-`API_KEY`
+```env
+NODE_ENV=development          # Options: development, production, test
+HOST=localhost                # Server host
+PORT=3000                     # Server port
+```
 
-`ANOTHER_API_KEY`
+**Note:** `PORT` and `HOST` are not required in test environment.
 
 ## Run Locally
 
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+git clone https://github.com/aszCodes/quizly.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd my-project
+cd quizly
 ```
 
 Install dependencies
 
 ```bash
-  npm install
+npm install
+```
+
+Supply `.env` file
+
+```env
+NODE_ENV=development          # Options: development, production, test
+HOST=localhost                # Server host
+PORT=3000                     # Server port
+```
+
+Seed the database
+
+```bash
+npm run db:seed
 ```
 
 Start the server
 
 ```bash
-  npm run start
+npm run dev
 ```
+
+The application will be available at `http://localhost:3000`
 
 ## Running Tests
 
-To run tests, run the following command
+To run the test suite:
 
 ```bash
-  npm run test
+npm test
 ```
 
-## API Reference
+To run tests in watch mode:
 
-#### Get all items
-
-```http
-  GET /api/items
+```bash
+npm run test:watch
 ```
 
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
+To run tests with coverage:
 
-#### Get item
-
-```http
-  GET /api/items/${id}
+```bash
+npm run test:coverage
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `id`      | `string` | **Required**. Id of item to fetch |
+## API Documentation
 
-#### add(num1, num2)
+API documentation is available via Swagger UI at:
 
-Takes two numbers and returns the sum.
+http://localhost:3000/api-docs
 
 ## Color Reference
 
-| Color         | Hex                                                              |
-| ------------- | ---------------------------------------------------------------- |
-| Example Color | ![#0a192f](https://via.placeholder.com/10/0a192f?text=+) #0a192f |
-| Example Color | ![#f8f8f8](https://via.placeholder.com/10/f8f8f8?text=+) #f8f8f8 |
-| Example Color | ![#00b48a](https://via.placeholder.com/10/00b48a?text=+) #00b48a |
-| Example Color | ![#00d1a0](https://via.placeholder.com/10/00b48a?text=+) #00d1a0 |
+[Color pallate](https://colorhunt.co/palette/37353e44444e715a5ad3dad9) 🎨
+
+| Color      | Hex     | Usage                     |
+| ---------- | ------- | ------------------------- |
+| Background | #f5f6fa | Page background           |
+| Primary    | #273c75 | Primary buttons, headings |
+| Secondary  | #0097e6 | Secondary actions         |
+| Card BG    | #ffffff | Card backgrounds          |
+| Error      | #c23616 | Error messages            |
+
+## Database Schema
+
+The application uses SQLite with the following main tables:
+
+-   `students` - Student records
+-   `quizzes` - Quiz definitions
+-   `questions` - Quiz questions with multiple choice options
+-   `attempts` - Student answer submissions
+-   `quiz_sessions` - Active quiz sessions with tokens
+-   `question_views` - Tracking of viewed questions
+-   `student_whitelist` - Authorized students per section
 
 ## Roadmap
 
--   Additional browser support
-
--   Add more integrations
+-   Admin dashboard for teachers
+-   Export quiz results to CSV/Excel
+-   Question types beyond multiple choice
+-   Image support in questions
 
 ## License
 
