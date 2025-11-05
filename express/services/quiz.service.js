@@ -3,9 +3,7 @@ import * as studentRepo from "../repositories/students.repository.js";
 import * as whitelistRepo from "../repositories/whitelist.repository.js";
 import * as sessionRepo from "../repositories/session.repository.js";
 import { ErrorFactory, validateOrThrow } from "../errors/error.factory.js";
-
-const MIN_NAME_LENGTH = 2;
-const MAX_NAME_LENGTH = 255;
+import { VALIDATION, SCORING } from "../config/constants.js";
 
 /**
  * Retrieve all active quizzes available to students.
@@ -44,8 +42,8 @@ export const startQuizSession = (studentName, section, quizId) => {
 	const trimmedName = validateOrThrow.stringLength(
 		studentName,
 		"student name",
-		MIN_NAME_LENGTH,
-		MAX_NAME_LENGTH
+		VALIDATION.MIN_NAME_LENGTH,
+		VALIDATION.MAX_NAME_LENGTH
 	);
 
 	// Validate and normalize section
@@ -207,7 +205,9 @@ export const submitAnswer = (sessionToken, questionId, answer, quizId) => {
 	const isCorrect =
 		answerStr.trim().toLowerCase() ===
 		question.correct_answer.trim().toLowerCase();
-	const score = isCorrect ? 1 : 0;
+	const score = isCorrect
+		? SCORING.QUIZ_CORRECT_ANSWER
+		: SCORING.INCORRECT_ANSWER;
 
 	// Save attempt
 	quizRepo.createAttempt(

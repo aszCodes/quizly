@@ -1,4 +1,5 @@
 import * as appError from "./app.error.js";
+import { VALIDATION, TIME_LIMITS } from "../config/constants.js";
 
 /**
  * Factory for creating consistent error messages
@@ -24,13 +25,19 @@ export const ErrorFactory = {
 		return new appError.ValidationError(`Invalid ${resourceType}`);
 	},
 
-	invalidDuration: (min, max) => {
+	invalidDuration: (
+		min = TIME_LIMITS.MIN_QUESTION_TIME,
+		max = TIME_LIMITS.MAX_QUESTION_TIME
+	) => {
 		return new appError.ValidationError(
 			`Duration must be between ${min}ms and ${max}ms`
 		);
 	},
 
-	invalidName: (minLength, maxLength) => {
+	invalidName: (
+		minLength = VALIDATION.MIN_NAME_LENGTH,
+		maxLength = VALIDATION.MAX_NAME_LENGTH
+	) => {
 		return new appError.ValidationError(
 			`Name must be between ${minLength} and ${maxLength} characters`
 		);
@@ -94,9 +101,7 @@ export const ErrorFactory = {
 		);
 	},
 
-	// ============================================
 	// NOT FOUND ERRORS (404)
-	// ============================================
 
 	notFound: (resourceType = "Resource") => {
 		return new appError.NotFoundError(`${resourceType} not found`);
@@ -159,7 +164,12 @@ export const validateOrThrow = {
 	/**
 	 * Validate string length
 	 */
-	stringLength: (value, fieldName, min, max) => {
+	stringLength: (
+		value,
+		fieldName,
+		min = VALIDATION.MIN_NAME_LENGTH,
+		max = VALIDATION.MAX_NAME_LENGTH
+	) => {
 		if (typeof value !== "string") {
 			throw ErrorFactory.invalidField(fieldName, "must be a string");
 		}
@@ -175,7 +185,11 @@ export const validateOrThrow = {
 	/**
 	 * Validate duration range
 	 */
-	duration: (value, min, max) => {
+	duration: (
+		value,
+		min = TIME_LIMITS.MIN_QUESTION_TIME,
+		max = TIME_LIMITS.MAX_QUESTION_TIME
+	) => {
 		if (typeof value !== "number" || isNaN(value)) {
 			throw ErrorFactory.invalidField("duration", "must be a number");
 		}

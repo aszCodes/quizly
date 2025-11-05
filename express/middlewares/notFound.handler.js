@@ -1,3 +1,7 @@
+import { HTTP_STATUS } from "../config/constants.js";
+
 export default function notFound(req, res, next) {
-	res.status(404).render("404", { url: req.originalUrl });
+	res.status(HTTP_STATUS.NOT_FOUND).render(`${HTTP_STATUS.NOT_FOUND}`, {
+		url: req.originalUrl,
+	});
 }

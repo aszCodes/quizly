@@ -1,8 +1,14 @@
 import { AppError, DatabaseError } from "../errors/app.error.js";
+import {
+	HTTP_STATUS,
+	ERROR_CODES,
+	ENVIRONMENTS,
+	DATABASE,
+} from "../config/constants.js";
 
 export default function errorHandler(err, req, res, next) {
 	// Log errors outside of test environment
-	if (process.env.NODE_ENV !== "test") {
+	if (process.env.NODE_ENV !== ENVIRONMENTS.TEST) {
 		console.error("Error caught by handler:", {
 			name: err.name,
 			message: err.message,
@@ -18,20 +24,23 @@ export default function errorHandler(err, req, res, next) {
 	}
 
 	// Handle SQLite/Database errors
-	if (err.code === "SQLITE_ERROR" || err.name === "SqliteError") {
+	if (
+		err.code === DATABASE.SQLITE_ERROR_CODE ||
+		err.name === DATABASE.SQLITE_ERROR_NAME
+	) {
 		const dbError = new DatabaseError("Database operation failed", err);
 		return res.status(dbError.statusCode).json(dbError.toJSON());
 	}
 
 	// Handle unknown/programming errors
-	const statusCode = err.statusCode || 500;
+	const statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
 	const response = {
 		error: err.message || "Internal server error",
-		code: "INTERNAL_ERROR",
+		code: ERROR_CODES.INTERNAL_ERROR,
 	};
 
 	// Include stack trace in development only
-	if (process.env.NODE_ENV === "development") {
+	if (process.env.NODE_ENV === ENVIRONMENTS.DEVELOPMENT) {
 		response.stack = err.stack;
 	}
 

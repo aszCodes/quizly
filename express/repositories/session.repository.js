@@ -1,4 +1,5 @@
 import db from "../db/database.js";
+import { TIME_LIMITS } from "../config/constants.js";
 import crypto from "node:crypto";
 
 /**
@@ -13,10 +14,6 @@ import crypto from "node:crypto";
  * @property {string} expires_at
  * @property {string|null} completed_at
  */
-
-const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const MIN_QUESTION_TIME_MS = 1000; // 1 second
-const MAX_QUESTION_TIME_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Generate a unique session token.
@@ -53,7 +50,7 @@ export const createQuizSession = (student_id, quiz_id, question_ids) => {
 	const question_order = JSON.stringify(shuffled_questions);
 
 	const now = new Date();
-	const expires_at = new Date(now.getTime() + SESSION_DURATION_MS);
+	const expires_at = new Date(now.getTime() + TIME_LIMITS.SESSION_DURATION);
 
 	// Format dates as ISO strings for SQLite
 	const started_at_iso = now.toISOString();
@@ -220,10 +217,10 @@ export const getQuestionView = (session_id, question_id) => {
 export const validateAnswerTiming = viewed_at => {
 	const duration = new Date() - new Date(viewed_at);
 
-	if (duration < MIN_QUESTION_TIME_MS)
+	if (duration < TIME_LIMITS.MIN_QUESTION_TIME)
 		return { valid: false, reason: "Answer submitted too quickly" };
 
-	if (duration > MAX_QUESTION_TIME_MS)
+	if (duration > TIME_LIMITS.MAX_QUESTION_TIME)
 		return { valid: false, reason: "Answer took too long" };
 
 	return { valid: true };

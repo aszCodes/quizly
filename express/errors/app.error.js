@@ -1,22 +1,39 @@
+import { HTTP_STATUS, ERROR_CODES, ENVIRONMENTS } from "../config/constants.js";
+
 export class AppError extends Error {
-	constructor(message, statusCode = 500, code = "INTERNAL_ERROR") {
+	constructor(
+		message,
+		statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR,
+		code = ERROR_CODES.INTERNAL_ERROR,
+		isOperational = true,
+		originalError = null
+	) {
 		super(message);
+
 		this.name = this.constructor.name;
 		this.statusCode = statusCode;
 		this.code = code;
-		this.isOperational = true;
+		this.isOperational = isOperational;
+		this.originalError = originalError;
 
 		Error.captureStackTrace(this, this.constructor);
 	}
 
 	toJSON() {
-		return {
+		const response = {
 			error: this.message,
 			code: this.code,
-			...(process.env.NODE_ENV === "development" && {
-				stack: this.stack,
-			}),
 		};
+
+		// Include stack trace and original error in development
+		if (process.env.NODE_ENV === ENVIRONMENTS.DEVELOPMENT) {
+			response.stack = this.stack;
+			if (this.originalError) {
+				response.original = this.originalError.message;
+			}
+		}
+
+		return response;
 	}
 }
 
@@ -25,7 +42,7 @@ export class AppError extends Error {
  */
 export class ValidationError extends AppError {
 	constructor(message = "Validation failed") {
-		super(message, 400, "VALIDATION_ERROR");
+		super(message, HTTP_STATUS.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR);
 	}
 }
 
@@ -34,7 +51,7 @@ export class ValidationError extends AppError {
  */
 export class UnauthorizedError extends AppError {
 	constructor(message = "Unauthorized access") {
-		super(message, 401, "UNAUTHORIZED");
+		super(message, HTTP_STATUS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED);
 	}
 }
 
@@ -43,7 +60,7 @@ export class UnauthorizedError extends AppError {
  */
 export class ForbiddenError extends AppError {
 	constructor(message = "Access forbidden") {
-		super(message, 403, "FORBIDDEN");
+		super(message, HTTP_STATUS.FORBIDDEN, ERROR_CODES.FORBIDDEN);
 	}
 }
 
@@ -52,7 +69,7 @@ export class ForbiddenError extends AppError {
  */
 export class NotFoundError extends AppError {
 	constructor(message = "Resource not found") {
-		super(message, 404, "NOT_FOUND");
+		super(message, HTTP_STATUS.NOT_FOUND, ERROR_CODES.NOT_FOUND);
 	}
 }
 
@@ -61,7 +78,7 @@ export class NotFoundError extends AppError {
  */
 export class ConflictError extends AppError {
 	constructor(message = "Resource conflict") {
-		super(message, 409, "CONFLICT");
+		super(message, HTTP_STATUS.CONFLICT, ERROR_CODES.CONFLICT);
 	}
 }
 
@@ -69,8 +86,14 @@ export class ConflictError extends AppError {
  * 500 Internal Server Error - Unexpected errors
  */
 export class InternalError extends AppError {
-	constructor(message = "Internal server error") {
-		super(message, 500, "INTERNAL_ERROR");
+	constructor(message = "Internal server error", originalError = null) {
+		super(
+			message,
+			HTTP_STATUS.INTERNAL_SERVER_ERROR,
+			ERROR_CODES.INTERNAL_ERROR,
+			false,
+			originalError
+		);
 	}
 }
 
@@ -79,7 +102,12 @@ export class InternalError extends AppError {
  */
 export class DatabaseError extends AppError {
 	constructor(message = "Database operation failed", originalError = null) {
-		super(message, 500, "DATABASE_ERROR");
-		this.originalError = originalError;
+		super(
+			message,
+			HTTP_STATUS.INTERNAL_SERVER_ERROR,
+			ERROR_CODES.DATABASE_ERROR,
+			true,
+			originalError
+		);
 	}
 }

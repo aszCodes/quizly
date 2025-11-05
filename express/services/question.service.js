@@ -2,10 +2,7 @@ import * as questionRepo from "../repositories/question.repository.js";
 import * as studentRepo from "../repositories/students.repository.js";
 import * as whitelistRepo from "../repositories/whitelist.repository.js";
 import { ErrorFactory, validateOrThrow } from "../errors/error.factory.js";
-
-const MIN_NAME_LENGTH = 2;
-const MAX_NAME_LENGTH = 255;
-const MAX_DURATION = 3600000; // 1 hour
+import { TIME_LIMITS, VALIDATION, SCORING } from "../config/constants.js";
 
 /**
  * Get the currently active standalone question.
@@ -66,15 +63,15 @@ export const submitSingleAnswer = (
 	const trimmedName = validateOrThrow.stringLength(
 		studentName,
 		"student name",
-		MIN_NAME_LENGTH,
-		MAX_NAME_LENGTH
+		VALIDATION.MIN_NAME_LENGTH,
+		VALIDATION.MAX_NAME_LENGTH
 	);
 	const trimmedSection = validateOrThrow.section(section);
 	const answerStr = typeof answer === "string" ? answer : String(answer);
 	const trimmedAnswer = answerStr.trim();
 	if (!trimmedAnswer)
 		throw ErrorFactory.invalidField("answer", "cannot be empty");
-	validateOrThrow.duration(duration, 1, MAX_DURATION);
+	validateOrThrow.duration(duration, 1, TIME_LIMITS.SINGLE_QUESTION_DURATION);
 
 	// Check if student is whitelisted
 	const whitelistedStudent = whitelistRepo.isStudentWhitelisted(
@@ -104,7 +101,7 @@ export const submitSingleAnswer = (
 	const isCorrect =
 		trimmedAnswer.toLowerCase() ===
 		question.correct_answer.trim().toLowerCase();
-	const score = isCorrect ? 10 : 0;
+	const score = isCorrect ? SCORING.CORRECT_ANSWER : SCORING.INCORRECT_ANSWER;
 
 	// Persist attempt
 	questionRepo.createSingleAttempt(

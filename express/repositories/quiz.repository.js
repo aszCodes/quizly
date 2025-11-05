@@ -1,4 +1,5 @@
 import db from "../db/database.js";
+import { DATABASE } from "../config/constants.js";
 import { parseQuestionOptions } from "./question.repository.js";
 
 /**
@@ -92,10 +93,13 @@ export const createAttempt = (
 /**
  * Get leaderboard for a quiz (sorted by score, then duration).
  * @param {number} quizId
- * @param {number} [limit=5]
+ * @param {number} limit
  * @returns {Array<{student_name:string, section:string, score:number, duration:number, attempts:number}>}
  */
-export const findLeaderboard = (quizId, limit = 5) => {
+export const findLeaderboard = (
+	quizId,
+	limit = DATABASE.DEFAULT_LEADERBOARD_LIMIT
+) => {
 	return db
 		.prepare(
 			`
