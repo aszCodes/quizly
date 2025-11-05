@@ -1,15 +1,24 @@
-import { createServer } from "node:http";
-import { router } from "./src/routes/router.js";
+import { validateEnv } from "./src/config/env.js";
+import { appConfig } from "./src/config/app.config.js";
+import app from "./src/app.js";
 
-const hostname = process.env.HOST;
-const port = process.env.PORT;
+/**
+ * Validate environment variables on startup
+ */
+try {
+	validateEnv();
+	console.log("✓ Environment variables validated");
+} catch (error) {
+	console.error("✗ Environment validation failed:", error.message);
+	process.exit(1);
+}
 
-const server = createServer(router);
+const { port, host } = appConfig.server;
 
-server
-	.listen(port, hostname, () => {
-		console.log(`Server running at http://${hostname}:${port}/`);
-	})
-	.on("error", (err) => {
-		console.error("Server error:", err);
+if (import.meta.main) {
+	app.listen(port, host, () => {
+		console.log(`Running on http://${host}:${port}`);
 	});
+}
+
+export default app;
