@@ -20,6 +20,7 @@ import {
 	getWhitelistedStudentsBySection,
 } from "./controllers/whitelist.controller.js";
 import { findQuizById } from "./repositories/quiz.repository.js";
+import httpLogger from "./config/logger.js";
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "localhost";
@@ -37,6 +38,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Parse JSON bodies
 app.use(express.json());
+app.use(httpLogger);
 
 // FRONTEND ROUTES
 
