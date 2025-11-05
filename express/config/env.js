@@ -25,21 +25,26 @@ export function validateEnv() {
 		}
 	}
 
-	// Check PORT is set AND valid
-	if (!process.env.PORT) {
-		errors.push("PORT is required");
-	} else {
-		const port = parseInt(process.env.PORT, 10);
-		if (isNaN(port) || port < 1 || port > 65535) {
-			errors.push(
-				`Invalid PORT: "${process.env.PORT}". Must be a number between 1 and 65535`
-			);
-		}
-	}
+	// Only require PORT and HOST if NOT in test environment
+	const isTest = process.env.NODE_ENV === ENVIRONMENTS.TEST; // or === 'test'
 
-	// Check HOST is set
-	if (!process.env.HOST) {
-		errors.push("HOST is required");
+	if (!isTest) {
+		// Check PORT is set AND valid
+		if (!process.env.PORT) {
+			errors.push("PORT is required");
+		} else {
+			const port = parseInt(process.env.PORT, 10);
+			if (isNaN(port) || port < 1 || port > 65535) {
+				errors.push(
+					`Invalid PORT: "${process.env.PORT}". Must be a number between 1 and 65535`
+				);
+			}
+		}
+
+		// Check HOST is set
+		if (!process.env.HOST) {
+			errors.push("HOST is required");
+		}
 	}
 
 	if (errors.length > 0) {
