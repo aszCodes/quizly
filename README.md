@@ -1,77 +1,98 @@
-# quizly
+color pallate: https://colorhunt.co/palette/37353e44444e715a5ad3dad9
+
+# Quizly
 
 An offline quiz app for teachers
 
-## Installation Steps
+## Tech Stack
 
-### 1. Install Dependencies
+**Client:** React, Redux, TailwindCSS
 
-```bash
-npm install
-```
+**Server:** Node, Express
 
-### 2. Create Environment File
+## Environment Variables
 
-```bash
-touch .env # or manually create the file
-```
+To run this project, you will need to add the following environment variables to your .env file
 
-Edit `.env` if you want to change the host or port:
+`API_KEY`
 
-```
-HOST=localhost
-PORT=3000
-```
+`ANOTHER_API_KEY`
 
-### 3. Start the Server
+## Run Locally
+
+Clone the project
 
 ```bash
-npm start
+  git clone https://link-to-project
 ```
 
-Or for development:
+Go to the project directory
 
 ```bash
-npm run dev
+  cd my-project
 ```
 
-### 4. Database Creation
+Install dependencies
 
-The database will be automatically created at `quizly.db` in your project root when you first start the server.
-
-## Database Schema
-
-### Quizzes Table
-
-```sql
-- id (INTEGER PRIMARY KEY)
-- title (TEXT)
-- description (TEXT)
-- timeLimit (INTEGER)
-- isActive (INTEGER)
-- allowedAttempts (INTEGER)
-- createdAt (TEXT)
+```bash
+  npm install
 ```
 
-### Questions Table
+Start the server
 
-```sql
-- id (INTEGER PRIMARY KEY)
-- quizId (INTEGER) - Foreign key to quizzes
-- questionText (TEXT)
-- options (TEXT) - JSON array
-- correctAnswerIndex (INTEGER)
-- createdAt (TEXT)
+```bash
+  npm run start
 ```
 
-### Attempts Table
+## Running Tests
 
-```sql
-- id (INTEGER PRIMARY KEY)
-- quizId (INTEGER) - Foreign key to quizzes
-- studentName (TEXT)
-- answers (TEXT) - JSON array
-- score (INTEGER)
-- totalQuestions (INTEGER)
-- completedAt (TEXT)
+To run tests, run the following command
+
+```bash
+  npm run test
 ```
+
+## API Reference
+
+#### Get all items
+
+```http
+  GET /api/items
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `api_key` | `string` | **Required**. Your API key |
+
+#### Get item
+
+```http
+  GET /api/items/${id}
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `id`      | `string` | **Required**. Id of item to fetch |
+
+#### add(num1, num2)
+
+Takes two numbers and returns the sum.
+
+## Color Reference
+
+| Color         | Hex                                                              |
+| ------------- | ---------------------------------------------------------------- |
+| Example Color | ![#0a192f](https://via.placeholder.com/10/0a192f?text=+) #0a192f |
+| Example Color | ![#f8f8f8](https://via.placeholder.com/10/f8f8f8?text=+) #f8f8f8 |
+| Example Color | ![#00b48a](https://via.placeholder.com/10/00b48a?text=+) #00b48a |
+| Example Color | ![#00d1a0](https://via.placeholder.com/10/00b48a?text=+) #00d1a0 |
+
+## Roadmap
+
+-   Additional browser support
+
+-   Add more integrations
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)

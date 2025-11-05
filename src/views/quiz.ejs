@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Quiz - Quizly</title>
+		<link rel="stylesheet" href="../style.css" />
+		<link
+			rel="shortcut icon"
+			href="./__uploads/logo.png"
+			type="image/x-icon"
+		/>
+		<style>
+			body {
+				overscroll-behavior: contain;
+			}
+			.warning-message {
+				background: #fff3cd;
+				border: 1px solid #ffc107;
+				color: #856404;
+				padding: 1rem;
+				border-radius: var(--radius);
+				margin-bottom: 1.5rem;
+				font-size: 0.9rem;
+			}
+			.warning-message strong {
+				display: block;
+				margin-bottom: 0.5rem;
+			}
+			select {
+				width: 100%;
+				padding: 0.75rem;
+				border: 1px solid #ddd;
+				border-radius: var(--radius);
+				font-size: 1rem;
+				background: white;
+				cursor: pointer;
+			}
+			select:focus {
+				outline: none;
+				border-color: var(--color-primary);
+				box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+			}
+
+			/* Session Info Styles */
+			.session-info {
+				background: var(--color-card-bg);
+				border-radius: var(--radius);
+				box-shadow: 0 2px 6px var(--color-shadow);
+				padding: 1.5rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.session-info-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 1rem;
+			}
+
+			.session-info-header h3 {
+				font-size: 1.1rem;
+				color: var(--color-heading);
+				font-weight: 600;
+			}
+
+			.session-info-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1rem;
+			}
+
+			.session-info-item {
+				background: #f8f9fa;
+				border: 1px solid #eee;
+				border-radius: 8px;
+				padding: 0.75rem 1rem;
+			}
+
+			.session-info-label {
+				font-size: 0.8rem;
+				color: var(--color-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.4px;
+				margin-bottom: 0.25rem;
+			}
+
+			.session-info-value {
+				font-size: 1rem;
+				color: var(--color-heading);
+				font-weight: 600;
+				word-break: break-word;
+			}
+
+			/* Timer */
+			.session-timer {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-family: monospace;
+			}
+
+			.timer-warning {
+				color: var(--color-error);
+				font-weight: 700;
+				animation: pulse 1s ease-in-out infinite;
+			}
+
+			@keyframes pulse {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.6;
+				}
+			}
+
+			/* Session expired notice */
+			.session-expired-notice {
+				background: #fff5f5;
+				border: 2px solid #f5c2c2;
+				color: var(--color-error);
+				padding: 1.25rem;
+				border-radius: var(--radius);
+				margin-bottom: 1.5rem;
+				text-align: center;
+				font-weight: 600;
+				box-shadow: 0 2px 6px var(--color-shadow);
+			}
+
+			.session-expired-notice p {
+				margin-top: 0.5rem;
+				font-weight: normal;
+				color: var(--color-muted);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container quiz-container">
+			<a href="/" class="back-link">← Back to Home</a>
+
+			<header class="header">
+				<img src="../__uploads/logo.png" alt="Achievers logo" />
+			</header>
+
+			<!-- Student Info Form -->
+			<div id="studentForm" class="form-section">
+				<div class="warning-message">
+					<strong>Important:</strong>
+					Select your name from the list. If your name is not listed,
+					contact your teacher.
+				</div>
+
+				<div class="form-group">
+					<label for="studentSection">Section *</label>
+					<select id="studentSection" required>
+						<option value="">-- Select Section --</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="studentName">Your Name *</label>
+					<select id="studentName" required disabled>
+						<option value="">-- Select Section First --</option>
+					</select>
+					<small
+						>Select your section first to see available names</small
+					>
+				</div>
+
+				<button
+					onclick="startQuiz()"
+					class="btn btn-primary"
+					style="width: 100%"
+					id="startBtn"
+					disabled
+				>
+					Start Quiz
+				</button>
+			</div>
+
+			<!-- Session Information -->
+			<div id="sessionInfo" class="session-info hidden">
+				<div class="session-info-header">
+					<h3>Session Details</h3>
+					<div class="session-timer">
+						<span id="sessionTimer">30:00</span>
+					</div>
+				</div>
+
+				<div class="session-info-grid">
+					<div class="session-info-item">
+						<div class="session-info-label">Student</div>
+						<div class="session-info-value" id="sessionStudent">
+							-
+						</div>
+					</div>
+					<div class="session-info-item">
+						<div class="session-info-label">Section</div>
+						<div class="session-info-value" id="sessionSection">
+							-
+						</div>
+					</div>
+					<div class="session-info-item">
+						<div class="session-info-label">Session Token</div>
+						<div
+							class="session-info-value"
+							id="sessionToken"
+							style="font-size: 0.8rem; font-family: monospace"
+						>
+							-
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Progress Bar -->
+			<div id="progressBar" class="progress-bar hidden">
+				<div class="progress-text" id="progressText">
+					Question 1 of 10
+				</div>
+				<div class="progress-track">
+					<div
+						class="progress-fill"
+						id="progressFill"
+						style="width: 0%"
+					></div>
+				</div>
+			</div>
+
+			<!-- Question Display -->
+			<div id="questionContainer" class="hidden"></div>
+
+			<!-- Results Display -->
+			<div id="resultsContainer" class="hidden"></div>
+
+			<!-- Loading/Error Messages -->
+			<div id="messageContainer"></div>
+		</div>
+
+		<script>
+			const quizId = parseInt("<%= quizId %>");
+			let sessionToken = null;
+			let currentQuestion = null;
+			let currentIndex = 0;
+			let totalQuestions = 0;
+			let selectedAnswer = null;
+			let isSubmitting = false;
+			let whitelistedStudents = [];
+			let sessionData = {
+				studentName: null,
+				section: null,
+				startedAt: null,
+				expiresAt: null,
+			};
+			let timerInterval = null;
+
+			// Prevent accidental back navigation
+			window.addEventListener("beforeunload", e => {
+				if (sessionToken && currentIndex < totalQuestions) {
+					e.preventDefault();
+					e.returnValue = "";
+				}
+			});
+
+			// Load sections and students on page load
+			window.addEventListener("DOMContentLoaded", async () => {
+				// Check for existing session
+				const savedToken = sessionStorage.getItem(
+					`quiz_${quizId}_token`
+				);
+				const savedSessionData = sessionStorage.getItem(
+					`quiz_${quizId}_sessionData`
+				);
+
+				if (savedToken && savedSessionData) {
+					sessionToken = savedToken;
+					sessionData = JSON.parse(savedSessionData);
+					recoverSession();
+					return;
+				}
+
+				// Load sections
+				await loadSections();
+			});
+
+			async function loadSections() {
+				try {
+					const response = await fetch("/api/whitelist/sections");
+					const sections = await response.json();
+
+					const sectionSelect =
+						document.getElementById("studentSection");
+					sectionSelect.innerHTML =
+						'<option value="">-- Select Section --</option>';
+
+					sections.forEach(section => {
+						const option = document.createElement("option");
+						option.value = section;
+						option.textContent = section;
+						sectionSelect.appendChild(option);
+					});
+
+					// Add event listener for section change
+					sectionSelect.addEventListener(
+						"change",
+						loadStudentsForSection
+					);
+				} catch (error) {
+					console.error("Error loading sections:", error);
+					showMessage("Failed to load sections", "error");
+				}
+			}
+
+			async function loadStudentsForSection() {
+				const sectionSelect = document.getElementById("studentSection");
+				const nameSelect = document.getElementById("studentName");
+				const startBtn = document.getElementById("startBtn");
+				const section = sectionSelect.value;
+
+				if (!section) {
+					nameSelect.innerHTML =
+						'<option value="">-- Select Section First --</option>';
+					nameSelect.disabled = true;
+					startBtn.disabled = true;
+					return;
+				}
+
+				try {
+					const response = await fetch(
+						`/api/whitelist/sections/${encodeURIComponent(
+							section
+						)}/students`
+					);
+					whitelistedStudents = await response.json();
+
+					nameSelect.innerHTML =
+						'<option value="">-- Select Your Name --</option>';
+
+					whitelistedStudents.forEach(student => {
+						const option = document.createElement("option");
+						option.value = student.name;
+						option.textContent = student.name;
+						nameSelect.appendChild(option);
+					});
+
+					nameSelect.disabled = false;
+
+					// Enable start button when name is selected
+					nameSelect.addEventListener("change", () => {
+						startBtn.disabled = !nameSelect.value;
+					});
+				} catch (error) {
+					console.error("Error loading students:", error);
+					showMessage("Failed to load students", "error");
+				}
+			}
+
+			async function startQuiz() {
+				const nameSelect = document.getElementById("studentName");
+				const sectionSelect = document.getElementById("studentSection");
+
+				const studentName = nameSelect.value;
+				const studentSection = sectionSelect.value;
+
+				if (!studentName || !studentSection) {
+					alert("Please select both section and name");
+					return;
+				}
+
+				try {
+					showMessage("Starting quiz...", "loading");
+
+					const response = await fetch(
+						`/api/quizzes/${quizId}/start`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								studentName,
+								section: studentSection,
+							}),
+						}
+					);
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						throw new Error(data.error || "Failed to start quiz");
+					}
+
+					// Save session data
+					sessionToken = data.sessionToken;
+					sessionData.studentName = studentName;
+					sessionData.section = studentSection;
+					sessionData.startedAt = new Date().toISOString();
+					sessionData.expiresAt = new Date(
+						Date.now() + 30 * 60 * 1000
+					).toISOString();
+
+					sessionStorage.setItem(
+						`quiz_${quizId}_token`,
+						sessionToken
+					);
+					sessionStorage.setItem(
+						`quiz_${quizId}_sessionData`,
+						JSON.stringify(sessionData)
+					);
+
+					// Hide form and show session info
+					document
+						.getElementById("studentForm")
+						.classList.add("hidden");
+					showSessionInfo();
+					startTimer();
+					hideMessage();
+
+					// Show first question
+					displayQuestion(
+						data.question,
+						data.currentIndex,
+						data.totalQuestions
+					);
+				} catch (error) {
+					console.error("Error starting quiz:", error);
+					showMessage(
+						`Failed to start quiz: ${error.message}`,
+						"error"
+					);
+				}
+			}
+
+			async function recoverSession() {
+				try {
+					showMessage("Recovering your session...", "loading");
+
+					const response = await fetch(
+						`/api/quizzes/${quizId}/current?sessionToken=${sessionToken}`
+					);
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						// Session expired or invalid
+						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
+						sessionToken = null;
+						throw new Error(data.error || "Session expired");
+					}
+
+					// Hide form and show session info
+					document
+						.getElementById("studentForm")
+						.classList.add("hidden");
+					showSessionInfo();
+					startTimer();
+					hideMessage();
+
+					// Show current question
+					displayQuestion(
+						data.question,
+						data.currentIndex,
+						data.totalQuestions
+					);
+				} catch (error) {
+					console.error("Error recovering session:", error);
+					showMessage(
+						`Session recovery failed: ${error.message}`,
+						"error"
+					);
+					sessionStorage.removeItem(`quiz_${quizId}_token`);
+					sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
+					sessionToken = null;
+					await loadSections();
+				}
+			}
+
+			function showSessionInfo() {
+				const sessionInfoDiv = document.getElementById("sessionInfo");
+				sessionInfoDiv.classList.remove("hidden");
+
+				document.getElementById("sessionStudent").textContent =
+					sessionData.studentName || "-";
+				document.getElementById("sessionSection").textContent =
+					sessionData.section || "-";
+				document.getElementById("sessionToken").textContent =
+					sessionToken ? sessionToken.substring(0, 16) + "..." : "-";
+			}
+
+			function startTimer() {
+				if (timerInterval) {
+					clearInterval(timerInterval);
+				}
+
+				updateTimer();
+				timerInterval = setInterval(updateTimer, 1000);
+			}
+
+			function updateTimer() {
+				if (!sessionData.expiresAt) return;
+
+				const now = Date.now();
+				const expiresAt = new Date(sessionData.expiresAt).getTime();
+				const remaining = Math.max(0, expiresAt - now);
+
+				const minutes = Math.floor(remaining / 60000);
+				const seconds = Math.floor((remaining % 60000) / 1000);
+
+				const timerElement = document.getElementById("sessionTimer");
+				const timerContainer = timerElement.parentElement;
+
+				timerElement.textContent = `${minutes}:${seconds
+					.toString()
+					.padStart(2, "0")}`;
+
+				// Add warning class when less than 5 minutes
+				if (minutes < 5) {
+					timerContainer.classList.add("timer-warning");
+				} else {
+					timerContainer.classList.remove("timer-warning");
+				}
+
+				// Session expired
+				if (remaining === 0) {
+					clearInterval(timerInterval);
+					handleSessionExpired();
+				}
+			}
+
+			function handleSessionExpired() {
+				const container = document.getElementById("questionContainer");
+				container.innerHTML = `
+					<div class="session-expired-notice">
+						⏰ Session Expired
+						<p style="margin-top: 0.5rem; font-weight: normal;">Your quiz session has expired. Please start a new quiz.</p>
+						<a href="/" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Back to Home</a>
+					</div>
+				`;
+
+				// Clear session storage
+				sessionStorage.removeItem(`quiz_${quizId}_token`);
+				sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
+			}
+
+			function displayQuestion(question, index, total) {
+				currentQuestion = question;
+				currentIndex = index;
+				totalQuestions = total;
+				selectedAnswer = null;
+				isSubmitting = false;
+
+				// Update progress
+				document
+					.getElementById("progressBar")
+					.classList.remove("hidden");
+				document.getElementById(
+					"progressText"
+				).textContent = `Question ${index + 1} of ${total}`;
+				document.getElementById("progressFill").style.width = `${
+					((index + 1) / total) * 100
+				}%`;
+
+				// Render question
+				const container = document.getElementById("questionContainer");
+				container.classList.remove("hidden");
+
+				const optionsHtml = question.options
+					.map((option, i) => {
+						const optionId = `option-${i}`;
+						return `
+							<div class="option-radio">
+								<input 
+									type="radio" 
+									name="answer" 
+									id="${optionId}"
+									value="${escapeHtmlAttribute(option)}"
+								/>
+								<label for="${optionId}">${escapeHtml(option)}</label>
+							</div>
+						`;
+					})
+					.join("");
+
+				const isLastQuestion = index === total - 1;
+				const buttonText = isLastQuestion ? "Submit Quiz" : "Next";
+
+				container.innerHTML = `
+					<div class="question-card">
+						<h2 class="question-text">${escapeHtml(question.question_text)}</h2>
+						<div class="options-container">${optionsHtml}</div>
+						<div class="navigation-buttons">
+							<button 
+								id="submitBtn"
+								class="btn btn-primary btn-next"
+								onclick="submitAnswer()"
+								disabled
+							>
+								${buttonText}
+							</button>
+						</div>
+					</div>
+				`;
+
+				// Add event listeners to radio buttons
+				const radios = container.querySelectorAll(
+					'input[type="radio"]'
+				);
+				radios.forEach(radio => {
+					radio.addEventListener("change", function () {
+						selectedAnswer = this.value;
+						document.getElementById("submitBtn").disabled = false;
+					});
+				});
+			}
+
+			async function submitAnswer() {
+				if (!selectedAnswer || isSubmitting) {
+					return;
+				}
+
+				isSubmitting = true;
+				const submitBtn = document.getElementById("submitBtn");
+				submitBtn.disabled = true;
+				submitBtn.textContent = "Submitting...";
+
+				// Disable all radio buttons
+				const radios = document.querySelectorAll('input[type="radio"]');
+				radios.forEach(radio => (radio.disabled = true));
+
+				try {
+					const response = await fetch(
+						`/api/quizzes/${quizId}/answer`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								sessionToken,
+								questionId: currentQuestion.id,
+								answer: selectedAnswer,
+							}),
+						}
+					);
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						throw new Error(
+							data.error || "Failed to submit answer"
+						);
+					}
+
+					// Wait a moment before proceeding
+					await new Promise(resolve => setTimeout(resolve, 1500));
+
+					if (data.completed) {
+						// Quiz finished
+						clearInterval(timerInterval);
+						sessionStorage.removeItem(`quiz_${quizId}_token`);
+						sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
+						showResults(data.results);
+					} else {
+						// Show next question
+						displayQuestion(
+							data.nextQuestion,
+							data.currentIndex,
+							data.totalQuestions
+						);
+					}
+				} catch (error) {
+					console.error("Error submitting answer:", error);
+					showMessage(`Submission failed: ${error.message}`, "error");
+
+					// Re-enable form
+					isSubmitting = false;
+					submitBtn.disabled = false;
+					submitBtn.textContent =
+						currentIndex === totalQuestions - 1
+							? "Submit Quiz"
+							: "Next";
+					radios.forEach(radio => (radio.disabled = false));
+				}
+			}
+
+			function showResults(results) {
+				// Hide question container, progress, and session info
+				document
+					.getElementById("questionContainer")
+					.classList.add("hidden");
+				document.getElementById("progressBar").classList.add("hidden");
+				document.getElementById("sessionInfo").classList.add("hidden");
+
+				// Show results
+				const container = document.getElementById("resultsContainer");
+				container.classList.remove("hidden");
+
+				const percentage = Math.round(
+					(results.correctCount / results.questionsAnswered) * 100
+				);
+
+				container.innerHTML = `
+					<div class="results-card">
+						<h2>Quiz Complete!</h2>
+						<div class="score-display">${results.totalScore}</div>
+						<p style="color: var(--color-muted); margin-bottom: 1.5rem;">
+							Total Score
+						</p>
+
+						<div class="results-details">
+							<div class="result-stat">
+								<div class="result-stat-value" style="color: #27ae60;">
+									${results.correctCount}
+								</div>
+								<div class="result-stat-label">Correct</div>
+							</div>
+							<div class="result-stat">
+								<div class="result-stat-value" style="color: #e74c3c;">
+									${results.incorrectCount}
+								</div>
+								<div class="result-stat-label">Incorrect</div>
+							</div>
+							<div class="result-stat">
+								<div class="result-stat-value">
+									${percentage}%
+								</div>
+								<div class="result-stat-label">Accuracy</div>
+							</div>
+						</div>
+
+						<div class="navigation-buttons">
+							<a href="/" class="btn btn-outline">Back to Home</a>
+							<a href="/leaderboard/${quizId}" class="btn btn-primary">View Leaderboard</a>
+						</div>
+					</div>
+				`;
+			}
+
+			function showMessage(message, type) {
+				const container = document.getElementById("messageContainer");
+				container.innerHTML = `<div class="${type}">${message}</div>`;
+			}
+
+			function hideMessage() {
+				document.getElementById("messageContainer").innerHTML = "";
+			}
+
+			function escapeHtmlAttribute(text) {
+				return String(text)
+					.replace(/&/g, "&amp;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;");
+			}
+
+			function escapeHtml(text) {
+				const div = document.createElement("div");
+				div.textContent = text;
+				return div.innerHTML;
+			}
+		</script>
+	</body>
+</html>

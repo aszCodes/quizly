@@ -1,0 +1,469 @@
+/* ==== Theme Variables ==== */
+:root {
+	/* Colors */
+	--color-bg: #f5f6fa;
+	--color-text: #222;
+	--color-heading: #2f3640;
+	--color-subheading: #273c75;
+	--color-muted: #555;
+	--color-date: #718093;
+	--color-card-bg: #ffffff;
+	--color-shadow: rgba(0, 0, 0, 0.08);
+
+	/* Buttons */
+	--color-primary: #273c75;
+	--color-primary-hover: #192a56;
+	--color-secondary: #0097e6;
+	--color-secondary-hover: #0077b6;
+	--color-outline: #273c75;
+	--color-error: #c23616;
+
+	/* Layout */
+	--radius: 10px;
+	--max-width: 900px;
+	--gap: 2rem;
+
+	/* Typography */
+	--font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ==== Base Styles ==== */
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-family);
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	display: flex;
+	justify-content: center;
+	min-height: 100vh;
+}
+
+.container {
+	width: 100%;
+	max-width: var(--max-width);
+	padding: 1.5rem;
+}
+
+body,
+input,
+textarea,
+select,
+button,
+label,
+* {
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-webkit-touch-callout: none; /* Prevents iOS long press menu */
+	-webkit-tap-highlight-color: transparent; /* Removes tap highlight */
+}
+
+/* ==== Header ==== */
+.header {
+	text-align: center;
+	margin-bottom: var(--gap);
+}
+
+.header img {
+	height: 5rem;
+	width: auto;
+}
+/* ==== Main Content ==== */
+.main-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+/* ==== Section Headings ==== */
+.quiz-section h2,
+.daily-question-section h2 {
+	font-size: 1.5rem;
+	margin-bottom: 1rem;
+	color: var(--color-subheading);
+}
+
+/* ==== Quiz Grid ==== */
+.quiz-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1rem;
+}
+
+.quiz-card {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 1.2rem;
+	box-shadow: 0 2px 6px var(--color-shadow);
+	transition: transform 0.15s ease;
+}
+
+.quiz-card:hover {
+	transform: translateY(-3px);
+}
+
+.quiz-card h3 {
+	margin-bottom: 0.5rem;
+	color: var(--color-heading);
+}
+
+.quiz-date {
+	font-size: 0.9rem;
+	color: var(--color-date);
+	margin-bottom: 1rem;
+}
+
+.quiz-actions {
+	display: flex;
+	gap: 0.5rem;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+/* ==== Buttons ==== */
+.btn {
+	display: inline-block;
+	padding: 0.6rem 1rem;
+	border-radius: 6px;
+	font-size: 0.95rem;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-primary {
+	background-color: var(--color-primary);
+	color: #fff;
+	border: none;
+}
+
+.btn-primary:hover {
+	background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+	background-color: var(--color-secondary);
+	color: #fff;
+	border: none;
+}
+
+.btn-secondary:hover {
+	background-color: var(--color-secondary-hover);
+}
+
+.btn-outline {
+	border: 1px solid var(--color-outline);
+	color: var(--color-outline);
+	background: none;
+}
+
+.btn-outline:hover {
+	background-color: var(--color-outline);
+	color: #fff;
+}
+
+/* ==== Utility States ==== */
+.loading,
+.error,
+.empty-state {
+	text-align: center;
+	font-size: 1rem;
+	color: var(--color-muted);
+	padding: 1rem;
+}
+
+/* ==== Daily Question Section ==== */
+.daily-question-card {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 1.5rem;
+	text-align: center;
+	box-shadow: 0 2px 6px var(--color-shadow);
+}
+
+.daily-question-card p {
+	margin-bottom: 1rem;
+	color: var(--color-muted);
+}
+
+/* ==== Error Page ==== */
+.error-page {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80vh;
+	text-align: center;
+}
+
+.error-code {
+	font-size: 6rem;
+	font-weight: 700;
+	color: var(--color-error);
+	margin-bottom: 0.5rem;
+}
+
+.error-content h2 {
+	font-size: 1.5rem;
+	margin-bottom: 1rem;
+	color: var(--color-heading);
+}
+
+.error-message {
+	margin-bottom: 1.5rem;
+	color: var(--color-muted);
+}
+
+/* ==== Quiz-specific styles ==== */
+.quiz-container {
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.progress-bar {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 1rem;
+	margin-bottom: 1.5rem;
+	box-shadow: 0 2px 6px var(--color-shadow);
+}
+
+.progress-text {
+	text-align: center;
+	font-size: 0.95rem;
+	color: var(--color-muted);
+	margin-bottom: 0.5rem;
+	font-weight: 600;
+}
+
+.progress-track {
+	background: #e0e0e0;
+	height: 8px;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.progress-fill {
+	background: linear-gradient(
+		90deg,
+		var(--color-primary),
+		var(--color-secondary)
+	);
+	height: 100%;
+	transition: width 0.3s ease;
+}
+
+.question-card {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 1.5rem;
+	box-shadow: 0 2px 6px var(--color-shadow);
+	margin-bottom: 1.5rem;
+}
+
+.question-text {
+	font-size: 1.25rem;
+	color: var(--color-heading);
+	margin-bottom: 1.5rem;
+	line-height: 1.5;
+}
+
+.options-container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.option-btn {
+	width: 100%;
+	padding: 1rem 1.25rem;
+	font-size: 1rem;
+	text-align: left;
+	border: 2px solid #ddd;
+	border-radius: 8px;
+	background: white;
+	color: var(--color-text);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	min-height: 56px;
+}
+
+.option-btn:hover {
+	border-color: var(--color-primary);
+	background: #f8f9fa;
+}
+
+.option-btn:active {
+	transform: scale(0.98);
+	background: #e3f2fd;
+}
+
+.option-btn.selected {
+	border-color: var(--color-primary);
+	background: var(--color-primary);
+	color: white;
+}
+
+.form-section {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 1.5rem;
+	box-shadow: 0 2px 6px var(--color-shadow);
+	margin-bottom: 1.5rem;
+}
+
+.form-group {
+	margin-bottom: 1rem;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 0.5rem;
+	color: var(--color-heading);
+	font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+	width: 100%;
+	padding: 0.75rem;
+	border: 2px solid #ddd;
+	border-radius: 6px;
+	font-size: 1rem;
+	transition: border-color 0.2s ease;
+	background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+	outline: none;
+	border-color: var(--color-primary);
+}
+
+.form-group small {
+	display: block;
+	margin-top: 0.25rem;
+	color: var(--color-muted);
+	font-size: 0.875rem;
+}
+
+.results-card {
+	background: var(--color-card-bg);
+	border-radius: var(--radius);
+	padding: 2rem;
+	box-shadow: 0 2px 6px var(--color-shadow);
+	text-align: center;
+}
+
+.score-display {
+	font-size: 3rem;
+	font-weight: 700;
+	color: var(--color-primary);
+	margin: 1rem 0;
+}
+
+.results-details {
+	display: flex;
+	justify-content: space-around;
+	margin: 1.5rem 0;
+	gap: 1rem;
+}
+
+.result-stat {
+	flex: 1;
+}
+
+.result-stat-value {
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: var(--color-heading);
+}
+
+.result-stat-label {
+	font-size: 0.9rem;
+	color: var(--color-muted);
+	margin-top: 0.25rem;
+}
+
+.hidden {
+	display: none;
+}
+
+.back-link {
+	display: inline-block;
+	margin-bottom: 1rem;
+	color: var(--color-primary);
+	text-decoration: none;
+	font-size: 0.95rem;
+}
+
+.back-link:hover {
+	text-decoration: underline;
+}
+
+.option-radio {
+	display: flex;
+	align-items: center;
+	padding: 1rem;
+	margin-bottom: 0.75rem;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background: white;
+}
+
+.option-radio:hover {
+	border-color: var(--color-primary);
+	background: #f8f9fa;
+}
+
+.option-radio input[type="radio"] {
+	width: 20px;
+	height: 20px;
+	margin-right: 12px;
+	cursor: pointer;
+	accent-color: var(--color-primary);
+}
+
+.option-radio label {
+	flex: 1;
+	cursor: pointer;
+	font-size: 1rem;
+	user-select: none;
+}
+
+.option-radio input[type="radio"]:checked + label {
+	font-weight: 600;
+	color: var(--color-primary);
+}
+
+.option-radio:has(input[type="radio"]:checked) {
+	border-color: var(--color-primary);
+	background: #f0f7ff;
+}
+
+.navigation-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: 1rem;
+	margin-top: 2rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid #e0e0e0;
+}
+
+.btn-next {
+	padding: 0.75rem 2rem;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.btn-next:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
