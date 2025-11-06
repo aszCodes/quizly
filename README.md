@@ -120,6 +120,7 @@ The application uses SQLite with the following main tables:
 
 ## Roadmap
 
+-   Migrate frontend to react
 -   Admin dashboard for teachers
 -   Export quiz results to CSV/Excel
 -   Question types beyond multiple choice

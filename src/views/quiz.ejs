@@ -7,7 +7,7 @@
 		<link rel="stylesheet" href="../style.css" />
 		<link
 			rel="shortcut icon"
-			href="./__uploads/logo.png"
+			href="../__uploads/logo.png"
 			type="image/x-icon"
 		/>
 		<style>
@@ -40,6 +40,19 @@
 				outline: none;
 				border-color: var(--color-primary);
 				box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+			}
+
+			.code-inline {
+				background: #f9fafb;
+				border: 1px solid #e5e7eb;
+				border-radius: 6px;
+				padding: 3px 7px;
+				font-family: "JetBrains Mono", "Fira Code", monospace;
+				font-size: 0.9em;
+				color: #1e293b;
+				box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+				white-space: pre-wrap;
+				word-break: break-word;
 			}
 
 			/* Session Info Styles */
@@ -543,6 +556,57 @@
 				sessionStorage.removeItem(`quiz_${quizId}_sessionData`);
 			}
 
+			// Format text with code styling
+			function formatTextWithCode(text, isOption = false) {
+				const parts = [];
+				let lastIndex = 0;
+				const codeRegex = /`([^`]+)`/g;
+				let match;
+
+				while ((match = codeRegex.exec(text)) !== null) {
+					if (match.index > lastIndex) {
+						parts.push({
+							type: "text",
+							content: text.substring(lastIndex, match.index),
+						});
+					}
+
+					// Add the code block with semicolons replaced by semicolon + newline
+					const codeContent = match[1].replace(/;\s*/g, ";\n");
+					parts.push({
+						type: "code",
+						content: codeContent,
+					});
+
+					lastIndex = match.index + match[0].length;
+				}
+
+				// Add remaining text
+				if (lastIndex < text.length) {
+					parts.push({
+						type: "text",
+						content: text.substring(lastIndex),
+					});
+				}
+
+				// If no code blocks found, just escape and return
+				if (parts.length === 0) {
+					return escapeHtml(text);
+				}
+
+				return parts
+					.map(part => {
+						if (part.type === "code") {
+							// Add line break before code only if it's not an option
+							const prefix = isOption ? "" : "<br>";
+							return `${prefix}<code class="code-inline">${part.content}</code>`;
+						} else {
+							return escapeHtml(part.content);
+						}
+					})
+					.join("");
+			}
+
 			function displayQuestion(question, index, total) {
 				currentQuestion = question;
 				currentIndex = index;
@@ -565,9 +629,18 @@
 				const container = document.getElementById("questionContainer");
 				container.classList.remove("hidden");
 
+				// Format question and options with code styling
+				const formattedQuestion = formatTextWithCode(
+					question.question_text
+				);
+
 				const optionsHtml = question.options
 					.map((option, i) => {
 						const optionId = `option-${i}`;
+						const formattedOption = formatTextWithCode(
+							option,
+							true
+						);
 						return `
 							<div class="option-radio">
 								<input 
@@ -576,7 +649,7 @@
 									id="${optionId}"
 									value="${escapeHtmlAttribute(option)}"
 								/>
-								<label for="${optionId}">${escapeHtml(option)}</label>
+								<label for="${optionId}">${formattedOption}</label>
 							</div>
 						`;
 					})
@@ -587,7 +660,7 @@
 
 				container.innerHTML = `
 					<div class="question-card">
-						<h2 class="question-text">${escapeHtml(question.question_text)}</h2>
+						<h2 class="question-text">${formattedQuestion}</h2>
 						<div class="options-container">${optionsHtml}</div>
 						<div class="navigation-buttons">
 							<button 
@@ -729,7 +802,7 @@
 
 						<div class="navigation-buttons">
 							<a href="/" class="btn btn-outline">Back to Home</a>
-							<a href="/leaderboard/${quizId}" class="btn btn-primary">View Leaderboard</a>
+							<a href="/leaderboard/${quizId}" class="btn btn-primary">Top Students</a>
 						</div>
 					</div>
 				`;

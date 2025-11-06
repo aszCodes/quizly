@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "node --watch --env-file=.env --watch server.js ",
+		"db:seed": "node src/db/seed.js && node src/db/seed.whitelist.js",
 		"test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
 		"test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
 		"test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand"
