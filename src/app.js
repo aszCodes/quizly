@@ -42,7 +42,7 @@ export function createApp() {
 	app.use("/", viewRoutes);
 	app.use("/api", apiRoutes);
 
-	// Error Handlers (must be last)
+	// Error Handlers
 	app.use(notFound);
 	app.use(errorHandler);
 

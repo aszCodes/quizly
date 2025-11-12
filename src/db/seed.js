@@ -10,7 +10,7 @@ try {
 	// db.exec("DELETE FROM students");
 
 	// ============================================
-	// Java Basics (Week 3–4)
+	// Java Basics (Week 3)
 	// ============================================
 	const javaQuiz = db
 		.prepare(
@@ -19,7 +19,7 @@ try {
 			VALUES (?, ?)
 		`
 		)
-		.run("Java Basics (Week 3–4)", 1);
+		.run("Java (Week 3)", 1);
 
 	const quizId = javaQuiz.lastInsertRowid;
 
@@ -300,7 +300,6 @@ try {
 	for (const [text, answer, opts] of questions) {
 		insertQuestion.run(text, answer, JSON.stringify(opts), quizId);
 	}
-
 	console.log(`Database seeded with ${questions.length} questions`);
 } catch (error) {
 	console.error("❌ Error seeding database:", error);
