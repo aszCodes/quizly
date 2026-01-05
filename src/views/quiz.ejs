@@ -409,7 +409,7 @@
 					sessionData.section = studentSection;
 					sessionData.startedAt = new Date().toISOString();
 					sessionData.expiresAt = new Date(
-						Date.now() + 30 * 60 * 1000
+						Date.now() + 45 * 60 * 1000 //45 minutes
 					).toISOString();
 
 					sessionStorage.setItem(

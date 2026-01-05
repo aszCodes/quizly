@@ -49,6 +49,7 @@ body {
 	padding: 1.5rem;
 }
 
+/* make it hard to copy and paste */
 body,
 input,
 textarea,
@@ -60,8 +61,8 @@ label,
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-	-webkit-touch-callout: none; /* Prevents iOS long press menu */
-	-webkit-tap-highlight-color: transparent; /* Removes tap highlight */
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 /* ==== Header ==== */
