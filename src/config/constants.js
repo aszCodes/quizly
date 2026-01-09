@@ -37,7 +37,6 @@ export const SCORING = {
 
 // Time Limits (milliseconds)
 export const TIME_LIMITS = {
-	SINGLE_QUESTION_DURATION: 60 * 60 * 1000, // 60 minutes
 	SESSION_DURATION: 45 * 60 * 1000, // 45 minutes
 	MIN_QUESTION_TIME: 1000, // 1 second
 	MAX_QUESTION_TIME: 10 * 60 * 1000, // 10 minutes

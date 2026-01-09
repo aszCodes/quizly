@@ -1,6 +1,20 @@
 import db from "../db/database.js";
 import { DATABASE } from "../config/constants.js";
-import { parseQuestionOptions } from "./question.repository.js";
+
+export const parseQuestionOptions = question => {
+	if (question) {
+		try {
+			question.options = question.options
+				? JSON.parse(question.options)
+				: [];
+		} catch (error) {
+			throw new Error(
+				`Invalid JSON in question ID ${question.id}: ${error.message}`
+			);
+		}
+	}
+	return question;
+};
 
 /**
  * Get quiz by ID.

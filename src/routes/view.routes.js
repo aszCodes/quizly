@@ -58,22 +58,4 @@ router.get("/leaderboard/:id", (req, res, next) => {
 	res.render("leaderboard", { quizId });
 });
 
-/**
- * @route   GET /single-question
- * @desc    Single question page
- * @access  Public
- */
-router.get("/single-question", (req, res) => {
-	res.render("single-question");
-});
-
-/**
- * @route   GET /single-leaderboard
- * @desc    Single question leaderboard page
- * @access  Public
- */
-router.get("/single-leaderboard", (req, res) => {
-	res.render("single-leaderboard");
-});
-
 export default router;
