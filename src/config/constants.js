@@ -51,7 +51,7 @@ export const VALIDATION = {
 
 // Database Settings
 export const DATABASE = {
-	DEFAULT_LEADERBOARD_LIMIT: 5,
+	DEFAULT_LEADERBOARD_LIMIT: 25,
 	SQLITE_ERROR_CODE: "SQLITE_ERROR",
 	SQLITE_ERROR_NAME: "SqliteError",
 };

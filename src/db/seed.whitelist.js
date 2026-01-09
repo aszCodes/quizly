@@ -73,6 +73,42 @@ try {
 		{ name: "Soriano, Hanna Lee Solis", section: "IT - B" },
 		{ name: "Subagan, Mark Bryan", section: "IT - B" },
 		{ name: "Villafania, Kenjie Lumbay", section: "IT - B" },
+
+		// IT - A 1st Year
+		// { name: "Albinto, Jenny Ann Inte", section: "IT - A (1st year)" },
+		// { name: "Anoche, John Lourence", section: "IT - A (1st year)" },
+		// {
+		// 	name: "Baltazar, Mark John Dave Delos Reyes",
+		// 	section: "IT - A (1st year)",
+		// },
+		// { name: "Baltazar, Reggie Madamca", section: "IT - A (1st year)" },
+		// { name: "Casiano, Ara Grace De Jesus", section: "IT - A (1st year)" },
+		// { name: "Casiano, Jamaica Mae De Jesus", section: "IT - A (1st year)" },
+		// { name: "Clutario, Jaycel Manuel", section: "IT - A (1st year)" },
+		// { name: "Dadez, Julie Ann Dela Cruz", section: "IT - A (1st year)" },
+		// { name: "Gawat, Khaizel Ann Dela Cruz", section: "IT - A (1st year)" },
+		// { name: "Gaviola, Jennylyn Novelo", section: "IT - A (1st year)" },
+		// { name: "Iliscupidez, Marco Simplina", section: "IT - A (1st year)" },
+		// { name: "Mamucay, Ar-Jay Layco", section: "IT - A (1st year)" },
+		// {
+		// 	name: "Marano, James Bryan Pangilinan",
+		// 	section: "IT - A (1st year)",
+		// },
+		// { name: "Nerviza, Jammel Olpindo", section: "IT - A (1st year)" },
+		// { name: "Petilo, Ronald Jr. San Pedro", section: "IT - A (1st year)" },
+		// { name: "Rivera, Oriel Jade Bautista", section: "IT - A (1st year)" },
+		// { name: "Romen, Xyrene Soriano", section: "IT - A (1st year)" },
+		// { name: "Romero, Chaira Carbonel", section: "IT - A (1st year)" },
+		// { name: "Salamat, King Lenard Dupra", section: "IT - A (1st year)" },
+		// { name: "Sarmiento, Andrew Dela Cruz", section: "IT - A (1st year)" },
+		// { name: "Soria, Mia Venalon", section: "IT - A (1st year)" },
+		// { name: "Tomi, Jhon Rey Cardano", section: "IT - A (1st year)" },
+		// { name: "Velitario, Yurie Aviso", section: "IT - A (1st year)" },
+		// {
+		// 	name: "Vicente, Auldrey John Vallejos",
+		// 	section: "IT - A (1st year)",
+		// },
+		// { name: "Villamar, Jasmin Abaya", section: "IT - A (1st year)" },
 	];
 
 	addMultipleStudentsToWhitelist(students);
